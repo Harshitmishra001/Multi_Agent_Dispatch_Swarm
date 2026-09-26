@@ -240,4 +240,8 @@ Acts as an internal critic. Scores the plan.
    ```
    *The Dashboard will be available at `http://localhost:5173`*
 
-
+### Running Tests
+Run the test suite across the multi-agent pipeline and solver:
+```bash
+pytest tests/ -v
+```

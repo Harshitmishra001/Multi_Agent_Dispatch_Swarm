@@ -14,9 +14,14 @@ venv.bak/
 # Environment Variables
 .env
 
-# Database
+# Database and Data
 *.db
+*.sqlite
 *.sqlite3
+qdrant_data/
+audit.log
+.pytest_cache/
+*.zip
 
 # Node / Frontend
 node_modules/

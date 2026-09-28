@@ -13,10 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python 3.12
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11"
           cache: "pip"
           
       - name: Install system dependencies
@@ -31,8 +31,9 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
           DATABASE_URL: "sqlite:///./test.db"
+          JWT_SECRET_KEY: "ci-secret-key-for-testing-only-disaster-coordinator"
         run: |
-          pytest tests/ -v
+          python -m pytest tests/ -v
 
   frontend-build:
     name: Frontend Build (Vite)

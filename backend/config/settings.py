@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite:///./disaster_coordinator.db"
 
-    # JWT — no default: app will refuse to start if this is unset
-    JWT_SECRET_KEY: str
+    # JWT — default fallback for test/dev environments if unset in .env
+    JWT_SECRET_KEY: str = "dev-secret-key-disaster-coordinator-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 

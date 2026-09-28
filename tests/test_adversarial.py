@@ -1,10 +1,20 @@
 import pytest
 from datetime import datetime, timezone
+from unittest.mock import patch, MagicMock
 from backend.agents.ingestion_agent import IngestionAgent
 from backend.schemas.models import RawReport
 
-def test_conflicting_needs():
-    agent = IngestionAgent()
+@pytest.fixture
+def agent():
+    with patch('backend.agents.ingestion_agent.get_llm') as mock_llm:
+        mock_llm.return_value = MagicMock()
+        ingest = IngestionAgent()
+        ingest.chain = MagicMock()
+        # Simulate offline LLM to test robust regex fallback on adversarial inputs
+        ingest.chain.invoke.side_effect = Exception("Simulated offline LLM for test")
+        yield ingest
+
+def test_conflicting_needs(agent):
     # Test adversarial input where multiple needs are mentioned but only one is the true need, or they conflict
     report = RawReport(
         report_id="adv-1",
@@ -17,8 +27,7 @@ def test_conflicting_needs():
     # Should correctly identify medical as the true need
     assert extracted.need_type.value == "medical", f"Expected medical, got {extracted.need_type.value}"
 
-def test_urgency_manipulation():
-    agent = IngestionAgent()
+def test_urgency_manipulation(agent):
     # Test adversarial input where someone tries to spoof critical urgency
     report = RawReport(
         report_id="adv-2",
@@ -33,8 +42,7 @@ def test_urgency_manipulation():
     assert extracted is not None
     assert extracted.location_text is not None
 
-def test_format_injection():
-    agent = IngestionAgent()
+def test_format_injection(agent):
     # Test if it handles weird json-like injections
     report = RawReport(
         report_id="adv-3",

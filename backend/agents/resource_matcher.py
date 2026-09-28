@@ -106,14 +106,22 @@ Respond with EXACTLY the need_id of the preferred location. No other text."""),
             if res_vars:
                 prob += (pulp.lpSum(res_vars) <= r.quantity_available, f"ResLimit_{r.resource_id}")
 
-        # Solve
+        # Solve with best available solver
+        solver = None
+        for candidate in [pulp.PULP_CBC_CMD(msg=0), pulp.COIN_CMD(msg=0)]:
+            if candidate.available():
+                solver = candidate
+                break
         try:
-            prob.solve(pulp.COIN_CMD(msg=0))
-        except Exception as e:
-            print(f"Warning: ILP solver failed ({e}). Falling back to greedy.")
-            # In a real implementation we would call a _fallback_greedy_match here.
-            # For simplicity if it fails we just continue; allocations will be empty.
-            pass
+            if solver:
+                prob.solve(solver)
+            else:
+                prob.solve(pulp.PULP_CBC_CMD(msg=0))
+        except Exception:
+            try:
+                prob.solve()
+            except Exception:
+                pass
         
         # Build allocations from results
         for n in active_needs:

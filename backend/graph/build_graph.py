@@ -47,7 +47,7 @@ def build_coordinator_graph():
         
     def match_node(state: CoordinatorState):
         # Gather all needs: existing + the newly verified one
-        needs = state.get("existing_needs", [])
+        needs = list(state.get("existing_needs", []))
         if state.get("verified_need"):
             needs.append(state["verified_need"])
             
@@ -62,7 +62,7 @@ def build_coordinator_graph():
         
     def synth_node(state: CoordinatorState):
         # Calculate unmet needs
-        needs = state.get("existing_needs", [])
+        needs = list(state.get("existing_needs", []))
         if state.get("verified_need"):
             needs.append(state["verified_need"])
             
@@ -74,7 +74,7 @@ def build_coordinator_graph():
         return {"plan": plan}
         
     def eval_node(state: CoordinatorState):
-        needs = state.get("existing_needs", [])
+        needs = list(state.get("existing_needs", []))
         if state.get("verified_need"):
             needs.append(state["verified_need"])
             

@@ -1,0 +1,2220 @@
+{
+  "results": {
+    "run_timestamp": "2026-10-05T10:43:39.058149+00:00",
+    "model": "smollm3-3b @ LM Studio",
+    "total_reports": 150,
+    "db_resources": 10,
+    "auto_approved": 73,
+    "hitl_routed": 3,
+    "hitl_approved_by_reviewer": 3,
+    "hitl_rejected_by_reviewer": 0,
+    "hitl_reasons": {
+      "low_confidence": 3,
+      "duplicate": 0
+    },
+    "duplicates_caught": 0,
+    "exact_duplicates_in_set": 20,
+    "near_duplicates_in_set": 30,
+    "errors": 5,
+    "latencies_s": [
+      36.08822729998792,
+      6.6713385000039125,
+      7.435375000000931,
+      9.681183499997132,
+      9.478585999997449,
+      5.015572200005408,
+      10.747776999996859,
+      11.362840800007689,
+      5.485891799995443,
+      13.465922300005332,
+      11.731068000008236,
+      12.085310000009486,
+      8.416178300001775,
+      18.78174740000395,
+      10.573397200001637,
+      18.957496900009573,
+      26.540173200002755,
+      11.400425300002098,
+      23.897037599992473,
+      21.526649000006728,
+      19.360375400006888,
+      24.97071359999245,
+      38.17849649999698,
+      29.243257499998435,
+      23.302512900001602,
+      27.93550019999384,
+      31.604497100008302,
+      30.480608300000313,
+      27.839139100004104,
+      30.69652369999676,
+      43.644290899988846,
+      36.67899879999459,
+      27.722267200006172,
+      41.27447959998972,
+      31.070117700000992,
+      32.72117870001239,
+      43.988759700005176,
+      45.280122299998766,
+      43.16496980001102,
+      20.570920600002864,
+      15.745813800007454,
+      16.26740399999835,
+      19.1344883999991,
+      18.867975099987234,
+      17.166809899994405,
+      20.85066409999854,
+      38.64388780000445,
+      46.9639971999859,
+      22.71790049999254,
+      19.95395890000509,
+      15.432358599995496,
+      20.626458200000343,
+      20.621934499999043,
+      60.28164069999184,
+      52.35340370000631,
+      46.62959910000791,
+      46.28656009999395,
+      67.66526339999109,
+      62.01723499999207,
+      59.457617899999605,
+      60.5240644000005,
+      55.878859200005536,
+      47.46379739999247,
+      52.717908399994485,
+      51.18039259999932,
+      55.5238956999965,
+      94.52568199999223,
+      62.130374299988034,
+      78.82553390000248,
+      61.576278199994704,
+      56.77144409999892,
+      77.51974560000235,
+      27.85357770000701,
+      60.897437999999966,
+      68.40364239999326,
+      56.42220720001205
+    ],
+    "evaluator_passed_first_try": 18,
+    "evaluator_needed_retry": 7,
+    "evaluator_hit_max_retries": 51,
+    "coverage_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      33.3,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      100.0,
+      7.7,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      33.3,
+      3.0,
+      7.7,
+      7.7,
+      7.7
+    ],
+    "fairness_scores": [
+      0.0,
+      0.0,
+      0.0,
+      0.5,
+      1.0,
+      1.0,
+      0.25,
+      0.25,
+      1.0,
+      0.0,
+      0.25,
+      0.0,
+      1.0,
+      0.5,
+      1.0,
+      0.5,
+      0.2,
+      1.0,
+      0.25,
+      0.25,
+      0.0,
+      0.0,
+      0.2,
+      0.5,
+      0.5,
+      0.25,
+      0.25,
+      0.5,
+      0.5,
+      0.5,
+      0.2,
+      1.0,
+      1.0,
+      0.25,
+      0.25,
+      1.0,
+      0.25,
+      0.5,
+      0.25,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.5,
+      0.5,
+      0.5,
+      0.333,
+      0.5,
+      0.333,
+      0.5,
+      0.25,
+      0.65,
+      0.7,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.5,
+      0.333,
+      0.5,
+      1.0,
+      0.3,
+      0.3,
+      0.3
+    ],
+    "per_report": [
+      {
+        "index": 1,
+        "type": "ambiguous",
+        "text_preview": "People are hungry and thirsty everywhere.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 36.088
+      },
+      {
+        "index": 2,
+        "type": "exact_duplicate",
+        "text_preview": "Flooding at Community Center has contaminated water supply f",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 6.671
+      },
+      {
+        "index": 3,
+        "type": "near_duplicate",
+        "text_preview": "100 wounded at Harbor View. Requesting paramedics and first ",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 7.435
+      },
+      {
+        "index": 4,
+        "type": "exact_duplicate",
+        "text_preview": "Dehydration risk for 30 elderly at High School Gym care home",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 9.681
+      },
+      {
+        "index": 5,
+        "type": "ambiguous",
+        "text_preview": "We need stuff at the place!",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 9.479
+      },
+      {
+        "index": 6,
+        "type": "ambiguous",
+        "text_preview": "Can someone help us? It's really bad here.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 5.016
+      },
+      {
+        "index": 7,
+        "type": "exact_duplicate",
+        "text_preview": "URGENT: 10 people trapped at Main St Clinic. Need water imme",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 10.748
+      },
+      {
+        "index": 8,
+        "type": "clean",
+        "text_preview": "Gas explosion at Industrial Zone. 10 people unaccounted for.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 11.363
+      },
+      {
+        "index": 9,
+        "type": "clean",
+        "text_preview": "URGENT: 15 people trapped at Main St Clinic. Need water imme",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 5.486
+      },
+      {
+        "index": 10,
+        "type": "clean",
+        "text_preview": "200 elderly immobile residents at Airport Terminal need evac",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 13.466
+      },
+      {
+        "index": 11,
+        "type": "ambiguous",
+        "text_preview": "Things are getting worse by the minute.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 11.731
+      },
+      {
+        "index": 12,
+        "type": "ambiguous",
+        "text_preview": "Can you dispatch someone? You know where we are.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 12.085
+      },
+      {
+        "index": 13,
+        "type": "clean",
+        "text_preview": "URGENT: 10 people trapped at Main St Clinic. Need water imme",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 8.416
+      },
+      {
+        "index": 14,
+        "type": "exact_duplicate",
+        "text_preview": "Dialysis unit at Mission District hospital needs emergency s",
+        "outcome": "error: overlapping constraint names: NeedLimit_need_bench_ccac06e2",
+        "hitl_action": null,
+        "coverage_pct": null,
+        "latency_s": 8.411
+      },
+      {
+        "index": 15,
+        "type": "ambiguous",
+        "text_preview": "Things are getting worse by the minute.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 18.782
+      },
+      {
+        "index": 16,
+        "type": "clean",
+        "text_preview": "50 people trapped under rubble at Westside Campus after buil",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 10.573
+      },
+      {
+        "index": 17,
+        "type": "exact_duplicate",
+        "text_preview": "Water supply cut off for 15 residents near Elm Street. Reque",
+        "outcome": "error: overlapping constraint names: NeedLimit_need_bench_7ca3e469",
+        "hitl_action": null,
+        "coverage_pct": null,
+        "latency_s": 13.461
+      },
+      {
+        "index": 18,
+        "type": "clean",
+        "text_preview": "40 refugees arrived at Airport Terminal border with no shelt",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 18.957
+      },
+      {
+        "index": 19,
+        "type": "ambiguous",
+        "text_preview": "We called before, still no one came.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 26.54
+      },
+      {
+        "index": 20,
+        "type": "clean",
+        "text_preview": "Bread shortage at Central Park. 30 families queuing with no ",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 11.4
+      },
+      {
+        "index": 21,
+        "type": "near_duplicate",
+        "text_preview": "FOLLOW-UP: Earthquake damaged 50 structures in Industrial Zo",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 23.897
+      },
+      {
+        "index": 22,
+        "type": "exact_duplicate",
+        "text_preview": "We have 20 patients at Southside Hospital hospital with no c",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 21.527
+      },
+      {
+        "index": 23,
+        "type": "ambiguous",
+        "text_preview": "People are suffering. Do something.",
+        "outcome": "hitl_approved_then_processed",
+        "hitl_action": "approve",
+        "coverage_pct": 0.0,
+        "latency_s": 19.36
+      },
+      {
+        "index": 24,
+        "type": "near_duplicate",
+        "text_preview": "UPDATE: 120 families evacuated from Community Center due to ",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 24.971
+      },
+      {
+        "index": 25,
+        "type": "near_duplicate",
+        "text_preview": "20 workers stranded at Oak Avenue construction site need foo",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 38.178
+      },
+      {
+        "index": 26,
+        "type": "exact_duplicate",
+        "text_preview": "Water tanker needed at Riverside District camp. 50 displaced",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 29.243
+      },
+      {
+        "index": 27,
+        "type": "clean",
+        "text_preview": "Flooding at Community Center has contaminated water supply f",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 23.303
+      },
+      {
+        "index": 28,
+        "type": "clean",
+        "text_preview": "Maternity ward at Lakefront Drive needs blood supply. 15 wom",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 27.936
+      },
+      {
+        "index": 29,
+        "type": "near_duplicate",
+        "text_preview": "Elderly residents at North Station nursing home need meal de",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 31.604
+      },
+      {
+        "index": 30,
+        "type": "ambiguous",
+        "text_preview": "Send whatever you have to the downtown area.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 30.481
+      },
+      {
+        "index": 31,
+        "type": "ambiguous",
+        "text_preview": "We need stuff at the place!",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 27.839
+      },
+      {
+        "index": 32,
+        "type": "ambiguous",
+        "text_preview": "Need help NOW!!!",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 30.697
+      },
+      {
+        "index": 33,
+        "type": "clean",
+        "text_preview": "We have 25 patients at Southside Hospital hospital with no c",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 43.644
+      },
+      {
+        "index": 34,
+        "type": "exact_duplicate",
+        "text_preview": "Need shelter for 25 families after the flood on Maple Grove.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 36.679
+      },
+      {
+        "index": 35,
+        "type": "exact_duplicate",
+        "text_preview": "Borehole failed at North Station. 60 villagers have no water",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 27.722
+      },
+      {
+        "index": 36,
+        "type": "near_duplicate",
+        "text_preview": "Shortage of insulin and bandages at Central Park health post",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 41.274
+      },
+      {
+        "index": 37,
+        "type": "near_duplicate",
+        "text_preview": "40 refugees arrived at Airport Terminal border with no shelt",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 31.07
+      },
+      {
+        "index": 38,
+        "type": "ambiguous",
+        "text_preview": "Everything is gone. Please send assistance.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 32.721
+      },
+      {
+        "index": 39,
+        "type": "near_duplicate",
+        "text_preview": "Need shelter for 25 families after the flood on Maple Grove.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 43.989
+      },
+      {
+        "index": 40,
+        "type": "ambiguous",
+        "text_preview": "Emergency at the usual spot.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 45.28
+      },
+      {
+        "index": 41,
+        "type": "ambiguous",
+        "text_preview": "Emergency at the usual spot.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 0.0,
+        "latency_s": 43.165
+      },
+      {
+        "index": 42,
+        "type": "near_duplicate",
+        "text_preview": "FOLLOW-UP: Water supply cut off for 15 residents near Elm St",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 20.571
+      },
+      {
+        "index": 43,
+        "type": "ambiguous",
+        "text_preview": "Can someone help us? It's really bad here.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 15.746
+      },
+      {
+        "index": 44,
+        "type": "clean",
+        "text_preview": "Need shelter for 25 families after the flood on Maple Grove.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 16.267
+      },
+      {
+        "index": 45,
+        "type": "near_duplicate",
+        "text_preview": "Dehydration risk for 30 elderly at High School Gym care home",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 19.134
+      },
+      {
+        "index": 46,
+        "type": "ambiguous",
+        "text_preview": "We need resources. Urgent.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 18.868
+      },
+      {
+        "index": 47,
+        "type": "clean",
+        "text_preview": "120 wounded at Harbor View. Requesting paramedics and first ",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 17.167
+      },
+      {
+        "index": 48,
+        "type": "exact_duplicate",
+        "text_preview": "Outbreak suspected at Hillcrest. 20 people showing symptoms.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 20.851
+      },
+      {
+        "index": 49,
+        "type": "ambiguous",
+        "text_preview": "We called before, still no one came.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 38.644
+      },
+      {
+        "index": 50,
+        "type": "ambiguous",
+        "text_preview": "Help!",
+        "outcome": "hitl_approved_then_processed",
+        "hitl_action": "approve",
+        "coverage_pct": 100.0,
+        "latency_s": 46.964
+      },
+      {
+        "index": 51,
+        "type": "near_duplicate",
+        "text_preview": "Camp at Southside Hospital is overcrowded. 100 additional pe",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 22.718
+      },
+      {
+        "index": 52,
+        "type": "ambiguous",
+        "text_preview": "Emergency at the usual spot.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 19.954
+      },
+      {
+        "index": 53,
+        "type": "ambiguous",
+        "text_preview": "Can someone help us? It's really bad here.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 15.432
+      },
+      {
+        "index": 54,
+        "type": "clean",
+        "text_preview": "120 people cut off by landslide on Maple Grove road.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 20.626
+      },
+      {
+        "index": 55,
+        "type": "near_duplicate",
+        "text_preview": "Outbreak suspected at Hillcrest. 20 people showing symptoms.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 20.622
+      },
+      {
+        "index": 56,
+        "type": "clean",
+        "text_preview": "Dehydration risk for 30 elderly at High School Gym care home",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 100.0,
+        "latency_s": 60.282
+      },
+      {
+        "index": 57,
+        "type": "clean",
+        "text_preview": "Fire destroyed 30 homes in Sunset Blvd. Families need emerge",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 7.7,
+        "latency_s": 52.353
+      },
+      {
+        "index": 58,
+        "type": "clean",
+        "text_preview": "200 children at Downtown Area haven't eaten in two days.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 46.63
+      },
+      {
+        "index": 59,
+        "type": "ambiguous",
+        "text_preview": "The situation here is deteriorating fast.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 46.287
+      },
+      {
+        "index": 60,
+        "type": "clean",
+        "text_preview": "Dialysis unit at Mission District hospital needs emergency s",
+        "outcome": "error: overlapping constraint names: NeedLimit_need_bench_2f5f05eb",
+        "hitl_action": null,
+        "coverage_pct": null,
+        "latency_s": 27.453
+      },
+      {
+        "index": 61,
+        "type": "clean",
+        "text_preview": "We have 20 patients at Southside Hospital hospital with no c",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 67.665
+      },
+      {
+        "index": 62,
+        "type": "clean",
+        "text_preview": "Burns cases at Westside Campus. 10 people need immediate med",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 62.017
+      },
+      {
+        "index": 63,
+        "type": "clean",
+        "text_preview": "15 elderly people at Valley Road need prescription medicatio",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 59.458
+      },
+      {
+        "index": 64,
+        "type": "exact_duplicate",
+        "text_preview": "Medical supplies needed at Oak Avenue Clinic. 75 injured peo",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 60.524
+      },
+      {
+        "index": 65,
+        "type": "clean",
+        "text_preview": "Water supply cut off for 20 residents near Elm Street. Reque",
+        "outcome": "error: overlapping constraint names: NeedLimit_need_bench_96697f43",
+        "hitl_action": null,
+        "coverage_pct": null,
+        "latency_s": 28.703
+      },
+      {
+        "index": 66,
+        "type": "exact_duplicate",
+        "text_preview": "Earthquake damaged 50 structures in Industrial Zone. Residen",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 55.879
+      },
+      {
+        "index": 67,
+        "type": "ambiguous",
+        "text_preview": "Someone is hurt, come quick.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 47.464
+      },
+      {
+        "index": 68,
+        "type": "ambiguous",
+        "text_preview": "Need help NOW!!!",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 52.718
+      },
+      {
+        "index": 69,
+        "type": "exact_duplicate",
+        "text_preview": "40 school children at Downtown Area Elementary without drink",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 51.18
+      },
+      {
+        "index": 70,
+        "type": "ambiguous",
+        "text_preview": "People are hungry and thirsty everywhere.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 55.524
+      },
+      {
+        "index": 71,
+        "type": "clean",
+        "text_preview": "Pregnant women at Mission District camp need nutrition suppl",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 94.526
+      },
+      {
+        "index": 72,
+        "type": "near_duplicate",
+        "text_preview": "We have 20 patients at Southside Hospital hospital with no c",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 62.13
+      },
+      {
+        "index": 73,
+        "type": "clean",
+        "text_preview": "Landslide at Elm Street destroyed 75 homes overnight.",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 78.826
+      },
+      {
+        "index": 74,
+        "type": "clean",
+        "text_preview": "100 wounded at Harbor View. Requesting paramedics and first ",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 61.576
+      },
+      {
+        "index": 75,
+        "type": "clean",
+        "text_preview": "75 hikers lost in Valley Road forest. Search and rescue requ",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 56.771
+      },
+      {
+        "index": 76,
+        "type": "exact_duplicate",
+        "text_preview": "Maternity ward at Lakefront Drive needs blood supply. 10 wom",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 33.3,
+        "latency_s": 77.52
+      },
+      {
+        "index": 77,
+        "type": "near_duplicate",
+        "text_preview": "UPDATE: Dialysis unit at Mission District hospital needs eme",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 3.0,
+        "latency_s": 27.854
+      },
+      {
+        "index": 78,
+        "type": "clean",
+        "text_preview": "Borehole failed at North Station. 75 villagers have no water",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 7.7,
+        "latency_s": 60.897
+      },
+      {
+        "index": 79,
+        "type": "near_duplicate",
+        "text_preview": "Send food for 150 people at High School Gym gym. It's critic",
+        "outcome": "error: overlapping constraint names: NeedLimit_need_bench_16088793",
+        "hitl_action": null,
+        "coverage_pct": null,
+        "latency_s": 32.351
+      },
+      {
+        "index": 80,
+        "type": "ambiguous",
+        "text_preview": "Help!",
+        "outcome": "hitl_approved_then_processed",
+        "hitl_action": "approve",
+        "coverage_pct": 7.7,
+        "latency_s": 68.404
+      },
+      {
+        "index": 81,
+        "type": "near_duplicate",
+        "text_preview": "Water tanker requireed at Riverside District camp. 50 displa",
+        "outcome": "auto_approved",
+        "hitl_action": null,
+        "coverage_pct": 7.7,
+        "latency_s": 56.422
+      }
+    ]
+  },
+  "history_needs": [
+    {
+      "need_id": "need-bench-d5234748",
+      "source_report_ids": [
+        "bench-d5234748"
+      ],
+      "location_text": "everywhere",
+      "coordinates": [
+        34.0560828,
+        -118.2358646
+      ],
+      "need_type": "food",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-1189cfbd",
+      "source_report_ids": [
+        "bench-1189cfbd"
+      ],
+      "location_text": "Community Center",
+      "coordinates": [
+        42.1959011,
+        -122.7167478
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-96fe8a49",
+      "source_report_ids": [
+        "bench-96fe8a49"
+      ],
+      "location_text": "Harbor View",
+      "coordinates": [
+        41.6933811,
+        -83.4443765
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-ab2a26c2",
+      "source_report_ids": [
+        "bench-ab2a26c2"
+      ],
+      "location_text": "High School Gym care home",
+      "coordinates": null,
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-ec6d3e48",
+      "source_report_ids": [
+        "bench-ec6d3e48"
+      ],
+      "location_text": "the place",
+      "coordinates": [
+        51.5273868,
+        -0.1286962
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-5f67c874",
+      "source_report_ids": [
+        "bench-5f67c874"
+      ],
+      "location_text": "Can someone help us?",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-adc4a713",
+      "source_report_ids": [
+        "bench-adc4a713"
+      ],
+      "location_text": "Main St Clinic",
+      "coordinates": [
+        33.1237673,
+        -89.0536201
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-020b7cd6",
+      "source_report_ids": [
+        "bench-020b7cd6"
+      ],
+      "location_text": "Industrial Zone",
+      "coordinates": [
+        32.1283058,
+        34.8579669
+      ],
+      "need_type": "rescue",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-d530a597",
+      "source_report_ids": [
+        "bench-adc4a713",
+        "bench-d530a597"
+      ],
+      "location_text": "Main St Clinic",
+      "coordinates": [
+        33.1237673,
+        -89.0536201
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-adc4a713"
+    },
+    {
+      "need_id": "need-bench-469600af",
+      "source_report_ids": [
+        "bench-469600af"
+      ],
+      "location_text": "Airport Terminal",
+      "coordinates": [
+        41.4116551,
+        -81.8346737
+      ],
+      "need_type": "rescue",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-9c194892",
+      "source_report_ids": [
+        "bench-9c194892"
+      ],
+      "location_text": "Things are getting worse by the minute.",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-ed8b6ff4",
+      "source_report_ids": [
+        "bench-ed8b6ff4"
+      ],
+      "location_text": "You know where we are.",
+      "coordinates": null,
+      "need_type": "rescue",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-73f25953",
+      "source_report_ids": [
+        "bench-adc4a713",
+        "bench-73f25953"
+      ],
+      "location_text": "Main St Clinic",
+      "coordinates": [
+        33.1237673,
+        -89.0536201
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-adc4a713"
+    },
+    {
+      "need_id": "need-bench-99898ead",
+      "source_report_ids": [
+        "bench-9c194892",
+        "bench-99898ead"
+      ],
+      "location_text": "Things are getting worse by the minute.",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-9c194892"
+    },
+    {
+      "need_id": "need-bench-7eb401bc",
+      "source_report_ids": [
+        "bench-7eb401bc"
+      ],
+      "location_text": "Westside Campus",
+      "coordinates": [
+        30.294559,
+        -97.7444311
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-30f9d500",
+      "source_report_ids": [
+        "bench-30f9d500"
+      ],
+      "location_text": "Airport Terminal border",
+      "coordinates": null,
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-f4ba4b05",
+      "source_report_ids": [
+        "bench-f4ba4b05"
+      ],
+      "location_text": "We called before, still no one came.",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-71326143",
+      "source_report_ids": [
+        "bench-71326143"
+      ],
+      "location_text": "Central Park",
+      "coordinates": [
+        40.7827725,
+        -73.9653627
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-f7cf02ed",
+      "source_report_ids": [
+        "bench-f7cf02ed"
+      ],
+      "location_text": "Industrial Zone",
+      "coordinates": [
+        32.1283058,
+        34.8579669
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-44676916",
+      "source_report_ids": [
+        "bench-44676916"
+      ],
+      "location_text": "Southside Hospital",
+      "coordinates": [
+        40.7259868,
+        -73.2412937
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-89985e99",
+      "source_report_ids": [
+        "bench-89985e99"
+      ],
+      "location_text": "Unknown (Regex Fallback)",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.2,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-c8b20dc0",
+      "source_report_ids": [
+        "bench-c8b20dc0"
+      ],
+      "location_text": "Community Center",
+      "coordinates": [
+        42.1959011,
+        -122.7167478
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-e8a8b4d8",
+      "source_report_ids": [
+        "bench-e8a8b4d8"
+      ],
+      "location_text": "Oak Avenue construction site",
+      "coordinates": null,
+      "need_type": "food",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-855a7987",
+      "source_report_ids": [
+        "bench-855a7987"
+      ],
+      "location_text": "Riverside District camp",
+      "coordinates": [
+        -20.1661788,
+        57.7409703
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-d1a7f1b9",
+      "source_report_ids": [
+        "bench-1189cfbd",
+        "bench-d1a7f1b9"
+      ],
+      "location_text": "Community Center",
+      "coordinates": [
+        42.1959011,
+        -122.7167478
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-1189cfbd"
+    },
+    {
+      "need_id": "need-bench-e2eeb8f5",
+      "source_report_ids": [
+        "bench-e2eeb8f5"
+      ],
+      "location_text": "Lakefront Drive",
+      "coordinates": [
+        35.1618046,
+        -81.0022023
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-87f0a6a1",
+      "source_report_ids": [
+        "bench-87f0a6a1"
+      ],
+      "location_text": "North Station nursing home",
+      "coordinates": [
+        25.0655896,
+        121.5290694
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-03fbce7c",
+      "source_report_ids": [
+        "bench-03fbce7c"
+      ],
+      "location_text": "downtown area",
+      "coordinates": [
+        37.1101721,
+        -79.2881507
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-f9ece75e",
+      "source_report_ids": [
+        "bench-ec6d3e48",
+        "bench-f9ece75e"
+      ],
+      "location_text": "the place",
+      "coordinates": [
+        51.5273868,
+        -0.1286962
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-ec6d3e48"
+    },
+    {
+      "need_id": "need-bench-d587108b",
+      "source_report_ids": [
+        "bench-d587108b"
+      ],
+      "location_text": "Need help NOW!!!",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-f1263f74",
+      "source_report_ids": [
+        "bench-44676916",
+        "bench-f1263f74"
+      ],
+      "location_text": "Southside Hospital",
+      "coordinates": [
+        40.7259868,
+        -73.2412937
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-44676916"
+    },
+    {
+      "need_id": "need-bench-65b73f98",
+      "source_report_ids": [
+        "bench-65b73f98"
+      ],
+      "location_text": "Maple Grove",
+      "coordinates": [
+        45.0984983,
+        -93.4419222
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-12e92c62",
+      "source_report_ids": [
+        "bench-12e92c62"
+      ],
+      "location_text": "North Station",
+      "coordinates": [
+        42.3662986,
+        -71.0621622
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-b69aaecc",
+      "source_report_ids": [
+        "bench-b69aaecc"
+      ],
+      "location_text": "Central Park health post",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-cbff21b0",
+      "source_report_ids": [
+        "bench-30f9d500",
+        "bench-cbff21b0"
+      ],
+      "location_text": "Airport Terminal border",
+      "coordinates": null,
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-30f9d500"
+    },
+    {
+      "need_id": "need-bench-24bd7012",
+      "source_report_ids": [
+        "bench-24bd7012"
+      ],
+      "location_text": "Please send assistance",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-07cc749f",
+      "source_report_ids": [
+        "bench-65b73f98",
+        "bench-07cc749f"
+      ],
+      "location_text": "Maple Grove",
+      "coordinates": [
+        45.0984983,
+        -93.4419222
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-65b73f98"
+    },
+    {
+      "need_id": "need-bench-dec10c44",
+      "source_report_ids": [
+        "bench-dec10c44"
+      ],
+      "location_text": "usual spot",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-3ae3fef2",
+      "source_report_ids": [
+        "bench-3ae3fef2"
+      ],
+      "location_text": "usual spot",
+      "coordinates": null,
+      "need_type": "rescue",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-22e6fb14",
+      "source_report_ids": [
+        "bench-22e6fb14"
+      ],
+      "location_text": "Unknown (Regex Fallback)",
+      "coordinates": null,
+      "need_type": "water",
+      "quantity_estimate": 15,
+      "urgency": "moderate",
+      "verification_confidence": 0.6,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-7ca3e469"
+    },
+    {
+      "need_id": "need-bench-c3e2d644",
+      "source_report_ids": [
+        "bench-5f67c874",
+        "bench-c3e2d644"
+      ],
+      "location_text": "Can someone help us?",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-5f67c874"
+    },
+    {
+      "need_id": "need-bench-fb0dcf37",
+      "source_report_ids": [
+        "bench-65b73f98",
+        "bench-fb0dcf37"
+      ],
+      "location_text": "Maple Grove",
+      "coordinates": [
+        45.0984983,
+        -93.4419222
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-65b73f98"
+    },
+    {
+      "need_id": "need-bench-016f930f",
+      "source_report_ids": [
+        "bench-ab2a26c2",
+        "bench-016f930f"
+      ],
+      "location_text": "High School Gym care home",
+      "coordinates": null,
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-ab2a26c2"
+    },
+    {
+      "need_id": "need-bench-742c657f",
+      "source_report_ids": [
+        "bench-742c657f"
+      ],
+      "location_text": "We need resources. Urgent.",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-f5ce6d9b",
+      "source_report_ids": [
+        "bench-96fe8a49",
+        "bench-f5ce6d9b"
+      ],
+      "location_text": "Harbor View",
+      "coordinates": [
+        41.6933811,
+        -83.4443765
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-96fe8a49"
+    },
+    {
+      "need_id": "need-bench-971a7e2e",
+      "source_report_ids": [
+        "bench-971a7e2e"
+      ],
+      "location_text": "Hillcrest",
+      "coordinates": [
+        41.9511398,
+        -89.0645413
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-a7ef0fc1",
+      "source_report_ids": [
+        "bench-f4ba4b05",
+        "bench-a7ef0fc1"
+      ],
+      "location_text": "We called before, still no one came.",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-f4ba4b05"
+    },
+    {
+      "need_id": "need-bench-1c029802",
+      "source_report_ids": [
+        "bench-1c029802"
+      ],
+      "location_text": "Unknown (Regex Fallback)",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.2,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-c6713f6e",
+      "source_report_ids": [
+        "bench-c6713f6e"
+      ],
+      "location_text": "Southside Hospital",
+      "coordinates": [
+        40.7259868,
+        -73.2412937
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-dde1625d",
+      "source_report_ids": [
+        "bench-3ae3fef2",
+        "bench-dde1625d"
+      ],
+      "location_text": "usual spot",
+      "coordinates": null,
+      "need_type": "rescue",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-3ae3fef2"
+    },
+    {
+      "need_id": "need-bench-c60a7a60",
+      "source_report_ids": [
+        "bench-5f67c874",
+        "bench-c60a7a60"
+      ],
+      "location_text": "Can someone help us?",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-5f67c874"
+    },
+    {
+      "need_id": "need-bench-7ef4ab2d",
+      "source_report_ids": [
+        "bench-65b73f98",
+        "bench-7ef4ab2d"
+      ],
+      "location_text": "Maple Grove road",
+      "coordinates": [
+        45.288417,
+        -75.9210781
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-65b73f98"
+    },
+    {
+      "need_id": "need-bench-166f12a9",
+      "source_report_ids": [
+        "bench-971a7e2e",
+        "bench-166f12a9"
+      ],
+      "location_text": "Hillcrest",
+      "coordinates": [
+        41.9511398,
+        -89.0645413
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-971a7e2e"
+    },
+    {
+      "need_id": "need-bench-d0fa7b53",
+      "source_report_ids": [
+        "bench-ab2a26c2",
+        "bench-d0fa7b53"
+      ],
+      "location_text": "High School Gym care home",
+      "coordinates": null,
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-ab2a26c2"
+    },
+    {
+      "need_id": "need-bench-582beb66",
+      "source_report_ids": [
+        "bench-582beb66"
+      ],
+      "location_text": "sunset blvd",
+      "coordinates": [
+        11.0138317,
+        -74.8419183
+      ],
+      "need_type": "other",
+      "quantity_estimate": 30,
+      "urgency": "moderate",
+      "verification_confidence": 0.6,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-7ffd51e1",
+      "source_report_ids": [
+        "bench-7ffd51e1"
+      ],
+      "location_text": "Downtown Area",
+      "coordinates": [
+        37.1101721,
+        -79.2881507
+      ],
+      "need_type": "food",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-87a2abe3",
+      "source_report_ids": [
+        "bench-87a2abe3"
+      ],
+      "location_text": "The situation here is deteriorating fast.",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-2dae78bc",
+      "source_report_ids": [
+        "bench-44676916",
+        "bench-2dae78bc"
+      ],
+      "location_text": "Southside Hospital",
+      "coordinates": [
+        40.7259868,
+        -73.2412937
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-44676916"
+    },
+    {
+      "need_id": "need-bench-706a70ff",
+      "source_report_ids": [
+        "bench-7eb401bc",
+        "bench-706a70ff"
+      ],
+      "location_text": "Westside Campus",
+      "coordinates": [
+        30.294559,
+        -97.7444311
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-7eb401bc"
+    },
+    {
+      "need_id": "need-bench-88595df4",
+      "source_report_ids": [
+        "bench-88595df4"
+      ],
+      "location_text": "Valley Road",
+      "coordinates": [
+        42.2683709,
+        -71.0814166
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-d15209b1",
+      "source_report_ids": [
+        "bench-d15209b1"
+      ],
+      "location_text": "Oak Avenue Clinic",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-b4d318f4",
+      "source_report_ids": [
+        "bench-f7cf02ed",
+        "bench-b4d318f4"
+      ],
+      "location_text": "Industrial Zone",
+      "coordinates": [
+        32.1283058,
+        34.8579669
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-f7cf02ed"
+    },
+    {
+      "need_id": "need-bench-04dc8e38",
+      "source_report_ids": [
+        "bench-04dc8e38"
+      ],
+      "location_text": "unknown",
+      "coordinates": null,
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.6000000000000001,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-6448f263",
+      "source_report_ids": [
+        "bench-d587108b",
+        "bench-6448f263"
+      ],
+      "location_text": "Need help NOW!!!",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-d587108b"
+    },
+    {
+      "need_id": "need-bench-9c41cffe",
+      "source_report_ids": [
+        "bench-9c41cffe"
+      ],
+      "location_text": "Downtown Area Elementary",
+      "coordinates": null,
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-8bafd411",
+      "source_report_ids": [
+        "bench-d5234748",
+        "bench-8bafd411"
+      ],
+      "location_text": "everywhere",
+      "coordinates": [
+        34.0560828,
+        -118.2358646
+      ],
+      "need_type": "food",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-d5234748"
+    },
+    {
+      "need_id": "need-bench-7897509d",
+      "source_report_ids": [
+        "bench-7897509d"
+      ],
+      "location_text": "Mission District camp",
+      "coordinates": [
+        37.7640058,
+        -122.4233793
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-3a40e828",
+      "source_report_ids": [
+        "bench-44676916",
+        "bench-3a40e828"
+      ],
+      "location_text": "Southside Hospital",
+      "coordinates": [
+        40.7259868,
+        -73.2412937
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-44676916"
+    },
+    {
+      "need_id": "need-bench-885b5310",
+      "source_report_ids": [
+        "bench-885b5310"
+      ],
+      "location_text": "Elm Street",
+      "coordinates": [
+        40.1208026,
+        -75.344984
+      ],
+      "need_type": "shelter",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-32d972b8",
+      "source_report_ids": [
+        "bench-96fe8a49",
+        "bench-32d972b8"
+      ],
+      "location_text": "Harbor View",
+      "coordinates": [
+        41.6933811,
+        -83.4443765
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "high",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-96fe8a49"
+    },
+    {
+      "need_id": "need-bench-cf91537e",
+      "source_report_ids": [
+        "bench-cf91537e"
+      ],
+      "location_text": "Valley Road forest",
+      "coordinates": [
+        -33.763738,
+        151.2048988
+      ],
+      "need_type": "rescue",
+      "quantity_estimate": 0,
+      "urgency": "critical",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-4cbd8ce6",
+      "source_report_ids": [
+        "bench-e2eeb8f5",
+        "bench-4cbd8ce6"
+      ],
+      "location_text": "Lakefront Drive",
+      "coordinates": [
+        35.1618046,
+        -81.0022023
+      ],
+      "need_type": "medical",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-e2eeb8f5"
+    },
+    {
+      "need_id": "need-bench-46a7c3d3",
+      "source_report_ids": [
+        "bench-46a7c3d3"
+      ],
+      "location_text": "mission district hospital",
+      "coordinates": [
+        -2.6398067,
+        32.6558236
+      ],
+      "need_type": "other",
+      "quantity_estimate": 150,
+      "urgency": "moderate",
+      "verification_confidence": 0.6,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-2d72fdde",
+      "source_report_ids": [
+        "bench-12e92c62",
+        "bench-2d72fdde"
+      ],
+      "location_text": "North Station",
+      "coordinates": [
+        42.3662986,
+        -71.0621622
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-12e92c62"
+    },
+    {
+      "need_id": "need-bench-eef127b2",
+      "source_report_ids": [
+        "bench-eef127b2"
+      ],
+      "location_text": "Unknown (Regex Fallback)",
+      "coordinates": null,
+      "need_type": "other",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.2,
+      "requires_human_review": false,
+      "duplicate_of": null
+    },
+    {
+      "need_id": "need-bench-90f5c94d",
+      "source_report_ids": [
+        "bench-855a7987",
+        "bench-90f5c94d"
+      ],
+      "location_text": "Riverside District camp",
+      "coordinates": [
+        -20.1661788,
+        57.7409703
+      ],
+      "need_type": "water",
+      "quantity_estimate": 0,
+      "urgency": "moderate",
+      "verification_confidence": 0.9,
+      "requires_human_review": false,
+      "duplicate_of": "need-bench-855a7987"
+    }
+  ]
+}

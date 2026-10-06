@@ -15,6 +15,8 @@ def graph():
 
 def test_graph_human_review_interrupt(graph):
     # Setup initial state with a raw report
+    import uuid
+    thread_id = f"test_thread_1_{uuid.uuid4().hex[:8]}"
     report = RawReport(
         report_id="rpt-int-1",
         source_channel="sms",
@@ -47,7 +49,7 @@ def test_graph_human_review_interrupt(graph):
             duplicate_of=None
         )
         
-        config = {"configurable": {"thread_id": "test_thread_1"}}
+        config = {"configurable": {"thread_id": thread_id}}
         
         # Run graph
         state = {"raw_report": report}
@@ -67,6 +69,8 @@ def test_graph_human_review_interrupt(graph):
         assert len(final_state.next) == 0
 
 def test_graph_evaluator_reject_loop(graph):
+    import uuid
+    thread_id = f"test_thread_2_{uuid.uuid4().hex[:8]}"
     report = RawReport(
         report_id="rpt-int-2",
         source_channel="sms",
@@ -103,7 +107,7 @@ def test_graph_evaluator_reject_loop(graph):
             EvaluationResult(plan_id="p", coverage_pct=100, critical_unmet_count=0, fairness_score=0.9, passed=True, rationale="Pass 2")
         ]
         
-        config = {"configurable": {"thread_id": "test_thread_2"}}
+        config = {"configurable": {"thread_id": thread_id}}
         state = {"raw_report": report}
         
         # Run graph

@@ -1,25 +1,42 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+import bcrypt as _bcrypt
 from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+
+from backend.config.settings import settings
 from backend.db.models import DBUser, SessionLocal
 
+
+# ---------------------------------------------------------------------------
+# Password helpers — using bcrypt directly (passlib 1.7.4 is incompatible
+# with bcrypt 4.x/5.x due to the 72-byte wrap-bug detection failure).
+# ---------------------------------------------------------------------------
+
+def _hash_password(password: str) -> str:
+    """Hash a plain-text password with bcrypt."""
+    return _bcrypt.hashpw(password.encode(), _bcrypt.gensalt()).decode()
+
+
+def _verify_password(plain: str, hashed: str) -> bool:
+    """Verify a plain-text password against a stored bcrypt hash."""
+    return _bcrypt.checkpw(plain.encode(), hashed.encode())
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
+
+
+# Single canonical DB dependency — also used by routes.py so a single
+# FastAPI dependency_override in tests covers the whole chain.
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-from backend.config.settings import settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
-
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -63,17 +80,17 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
-# ---------- /token endpoint (Fix #1) ----------
+# ---------- /token endpoint ----------
 auth_router = APIRouter()
 
 @auth_router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(DBUser).filter(DBUser.username == form_data.username).first()
-    if not user or not pwd_context.verify(form_data.password, user.hashed_password):
+    if not user or not _verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     token = create_access_token({"sub": user.username, "role": user.role})
     return {"access_token": token, "token_type": "bearer"}
-

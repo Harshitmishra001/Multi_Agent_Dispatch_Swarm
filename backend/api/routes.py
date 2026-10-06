@@ -9,14 +9,14 @@ from sqlalchemy.orm import Session
 
 from backend.config.settings import settings
 from backend.db.models import (
-    DBAllocation, DBDispatchPlan, DBReport, DBResource, DBVerifiedNeed,
+    DBAllocation, DBDispatchPlan, DBPlanAudit, DBReport, DBResource, DBVerifiedNeed,
     SessionLocal,
 )
 from backend.graph.build_graph import build_coordinator_graph
 from backend.schemas.models import (
     NeedType, RawReport, ResourceRecord, UrgencyLevel, VerifiedNeed,
 )
-from backend.security.auth import get_current_admin, get_current_reviewer
+from backend.security.auth import get_current_admin, get_current_reviewer, get_db
 from backend.security.input_sanitization import sanitize_report_text
 from backend.security.rate_limiter import check_rate_limit
 
@@ -24,15 +24,6 @@ router = APIRouter()
 
 # ponytail: module-level singleton — moves to lifespan app.state if hot-reload causes issues
 graph = build_coordinator_graph()
-
-
-# ---------- DB dependency ----------
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # ---------- Helpers ----------
@@ -77,7 +68,16 @@ def _load_existing_needs(db: Session) -> List[VerifiedNeed]:
 
 
 def _persist_graph_state(report_id: str, thread_id: str, db: Session):
-    """Write VerifiedNeed and DispatchPlan from completed graph state to DB."""
+    """Write VerifiedNeed and DispatchPlan from completed graph state to DB.
+
+    Inventory reservation is performed atomically inside a single commit:
+    for each allocation the corresponding DBResource.quantity_available is
+    decremented.  If stock is insufficient the allocation is skipped and a
+    warning is logged so the planner can be notified on the next cycle.
+    """
+    import logging
+    _log = logging.getLogger(__name__)
+
     config = {"configurable": {"thread_id": thread_id}}
     state = graph.get_state(config)
     if not state or not state.values:
@@ -106,7 +106,7 @@ def _persist_graph_state(report_id: str, thread_id: str, db: Session):
                 duplicate_of=verified.duplicate_of,
             ))
 
-    # Persist DispatchPlan + Allocations
+    # Persist DispatchPlan + Allocations with atomic inventory reservation
     plan = vals.get("plan")
     evaluation = vals.get("evaluation")
     if plan:
@@ -125,6 +125,30 @@ def _persist_graph_state(report_id: str, thread_id: str, db: Session):
                 rationale=evaluation.rationale if evaluation else None,
             ))
             for alloc in plan.allocations:
+                # Atomically decrement inventory — skip if stock is depleted
+                resource_row = (
+                    db.query(DBResource)
+                    .filter(DBResource.resource_id == alloc.resource_id)
+                    .with_for_update()  # row-level lock inside this transaction
+                    .first()
+                )
+                if resource_row is None:
+                    _log.warning(
+                        "Allocation skipped — resource %s not found in DB",
+                        alloc.resource_id,
+                    )
+                    continue
+                if resource_row.quantity_available < alloc.quantity_allocated:
+                    _log.warning(
+                        "Allocation skipped — insufficient stock for %s "
+                        "(requested %d, available %d)",
+                        alloc.resource_id,
+                        alloc.quantity_allocated,
+                        resource_row.quantity_available,
+                    )
+                    continue
+                # Decrement stock and persist the allocation record together
+                resource_row.quantity_available -= alloc.quantity_allocated
                 db.add(DBAllocation(
                     plan_id=plan.plan_id,
                     need_id=alloc.need_id,
@@ -294,7 +318,7 @@ async def get_resources(
     limit: int = 100,
     offset: int = 0,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_admin),
+    current_user: dict = Depends(get_current_reviewer),  # reviewers may view resource depots on the map
 ):
     rows = db.query(DBResource).offset(offset).limit(limit).all()
     return {"resources": [
@@ -369,9 +393,21 @@ async def override_plan(
     plan = db.query(DBDispatchPlan).filter(DBDispatchPlan.plan_id == plan_id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
-    # ponytail: no separate override_log table yet — rationale field carries the audit note
+
+    now = datetime.now(timezone.utc)
+    override_note = f"ADMIN OVERRIDE by {current_user['username']} at {now.isoformat()}"
+
+    # Write an immutable audit record before mutating the plan
+    db.add(DBPlanAudit(
+        plan_id=plan_id,
+        overridden_by=current_user["username"],
+        overridden_at=now,
+        previous_rationale=plan.rationale,
+        new_rationale=override_note,
+    ))
+
     plan.passed = True
-    plan.rationale = f"ADMIN OVERRIDE by {current_user['username']} at {datetime.now(timezone.utc).isoformat()}"
+    plan.rationale = override_note
     db.commit()
     return {"status": "overridden", "plan_id": plan_id}
 

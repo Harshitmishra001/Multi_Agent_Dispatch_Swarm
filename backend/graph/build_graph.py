@@ -1,5 +1,6 @@
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
+import sqlite3
 
 from backend.graph.state import CoordinatorState
 from backend.schemas.models import ResourceRecord
@@ -10,6 +11,12 @@ from backend.agents.resource_matcher import ResourceMatcher
 from backend.agents.plan_synthesizer import PlanSynthesizer
 from backend.agents.evaluator_agent import EvaluatorAgent
 from backend.utils.logger import get_audit_logger
+
+# Module-level persistent checkpointer — survives server restarts.
+# check_same_thread=False is required because FastAPI BackgroundTasks run on
+# different threads from the main request thread.
+_checkpoint_conn = sqlite3.connect("./langgraph_checkpoints.db", check_same_thread=False)
+_checkpointer = SqliteSaver(_checkpoint_conn)
 
 def build_coordinator_graph():
     # Instantiate agents
@@ -118,8 +125,8 @@ def build_coordinator_graph():
     workflow.add_edge("synthesize", "evaluate")
     workflow.add_conditional_edges("evaluate", eval_edges)
     
-    # We use memory to enable the human-in-the-loop interrupt
-    memory = MemorySaver()
-    app = workflow.compile(checkpointer=memory, interrupt_before=["human_review"])
+    # Use the module-level SqliteSaver so interrupted human-review threads
+    # survive server restarts (replaces the old in-memory MemorySaver).
+    app = workflow.compile(checkpointer=_checkpointer, interrupt_before=["human_review"])
     
     return app

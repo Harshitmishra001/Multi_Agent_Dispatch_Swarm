@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, create_engine
+from sqlalchemy import Column, String, Integer, Float, Boolean, DateTime, ForeignKey, create_engine, Text
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime, timezone
 
@@ -58,6 +58,16 @@ class DBDispatchPlan(Base):
     passed = Column(Boolean, default=False)
     rationale = Column(String, nullable=True)
 
+class DBPlanAudit(Base):
+    """Immutable audit log for plan override actions. One row per override event."""
+    __tablename__ = "plan_audits"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    plan_id = Column(String, ForeignKey("dispatch_plans.plan_id"), index=True)
+    overridden_by = Column(String)              # username of the admin
+    overridden_at = Column(DateTime)            # UTC timestamp of the override
+    previous_rationale = Column(Text, nullable=True)  # value before the override
+    new_rationale = Column(Text)                # value set by this override
+
 class DBUser(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -75,16 +85,27 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    import bcrypt as _bcrypt
+
+    def _hash(pw: str) -> str:
+        return _bcrypt.hashpw(pw.encode(), _bcrypt.gensalt()).decode()
+
     db = SessionLocal()
     try:
+        # Seed default reviewer
         if not db.query(DBUser).filter(DBUser.username == "alice").first():
             db.add(DBUser(
                 username="alice",
-                hashed_password=pwd_context.hash("reviewer_pass"),
+                hashed_password=_hash("reviewer_pass"),
                 role="reviewer"
             ))
-            db.commit()
+        # Seed default admin — required for /resources admin endpoints and plan overrides
+        if not db.query(DBUser).filter(DBUser.username == "admin").first():
+            db.add(DBUser(
+                username="admin",
+                hashed_password=_hash("admin_pass"),
+                role="admin"
+            ))
+        db.commit()
     finally:
         db.close()

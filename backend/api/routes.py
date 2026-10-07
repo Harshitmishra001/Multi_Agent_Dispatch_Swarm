@@ -161,19 +161,6 @@ def _persist_graph_state(report_id: str, thread_id: str, db: Session):
     db.commit()
 
 
-def _run_graph(report: RawReport, db: Session):
-    """Called as a BackgroundTask — runs the full pipeline and persists results."""
-    config = {"configurable": {"thread_id": report.report_id}}
-    state = {
-        "raw_report": report,
-        "available_resources": _load_resources(db),
-        "existing_needs": _load_existing_needs(db),
-    }
-    for _ in graph.stream(state, config, stream_mode="values"):
-        pass
-
-    _persist_graph_state(report.report_id, report.report_id, db)
-
 
 # ---------- Request bodies ----------
 class ReportSubmission(BaseModel):
@@ -194,8 +181,8 @@ async def health():
 
 @router.post("/reports", dependencies=[Depends(check_rate_limit)])
 async def submit_report(
+    request: Request,
     submission: ReportSubmission,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     sanitized = sanitize_report_text(submission.raw_text)
@@ -223,8 +210,8 @@ async def submit_report(
 
     db.commit()
 
-    # Run pipeline in background — HTTP returns immediately
-    background_tasks.add_task(_run_graph, report, db)
+    # Enqueue pipeline task durably via ARQ
+    await request.app.state.arq_pool.enqueue_job('run_graph_task', report.model_dump())
 
     return {"status": "accepted", "report_id": report.report_id}
 
@@ -275,9 +262,9 @@ async def get_review_queue(
 
 @router.post("/needs/{need_id}/review")
 async def review_need(
+    request: Request,
     need_id: str,
     body: ReviewAction,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_reviewer),
 ):
@@ -302,17 +289,9 @@ async def review_need(
     source_ids = json.loads(row.source_report_ids) if row.source_report_ids else []
     thread_id = source_ids[0] if source_ids else need_id
 
-    def _resume(tid: str):
-        config = {"configurable": {"thread_id": tid}}
-        for _ in graph.stream(None, config, stream_mode="values"):
-            pass
-        _db = SessionLocal()
-        try:
-            _persist_graph_state(tid, tid, _db)
-        finally:
-            _db.close()
-
-    background_tasks.add_task(_resume, thread_id)
+    # Enqueue resume task durably via ARQ
+    await request.app.state.arq_pool.enqueue_job('resume_graph_task', thread_id)
+    
     return {"status": "approved_and_resumed", "need_id": need_id, "thread_id": thread_id}
 
 

@@ -2,7 +2,7 @@ from fastapi import HTTPException, Request, status
 import time
 import logging
 from redis import Redis
-from redis.exceptions import ConnectionError
+from redis.exceptions import ConnectionError, TimeoutError
 
 from backend.config.settings import settings
 
@@ -15,7 +15,7 @@ try:
     _real_redis.ping()
     _redis_client = _real_redis
     logger.info(f"Connected to Redis at {settings.REDIS_URL} for rate limiting.")
-except ConnectionError:
+except (ConnectionError, TimeoutError):
     logger.warning("Could not connect to Redis. Falling back to fakeredis for local development.")
     import fakeredis
     _redis_client = fakeredis.FakeRedis()

@@ -11,9 +11,44 @@ from backend.config.settings import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: init DB. Shutdown: nothing extra needed for SQLite."""
+    """Startup: init DB, connect to Redis for tasks. Shutdown: close Redis."""
     init_db()
+    
+    # Initialize ARQ Redis pool
+    import logging
+    from arq import create_pool
+    from arq.connections import RedisSettings
+    from redis.exceptions import ConnectionError, TimeoutError
+    import redis.asyncio as aioredis
+    
+    logger = logging.getLogger(__name__)
+    redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
+    
+    try:
+        # Test connection first
+        _test_conn = await aioredis.from_url(settings.REDIS_URL, socket_timeout=1)
+        await _test_conn.ping()
+        await _test_conn.aclose()
+        app.state.arq_pool = await create_pool(redis_settings)
+        logger.info(f"Connected ARQ task pool to {settings.REDIS_URL}")
+    except (ConnectionError, TimeoutError):
+        logger.warning("Could not connect to Redis for ARQ tasks. Using fakeredis fallback.")
+        import fakeredis.aioredis
+        class FakeArqPool:
+            def __init__(self):
+                self._redis = fakeredis.aioredis.FakeRedis()
+            async def enqueue_job(self, *args, **kwargs):
+                logger.info(f"Fake enqueue_job: {args} {kwargs}")
+                return None
+            async def close(self):
+                await self._redis.aclose()
+        app.state.arq_pool = FakeArqPool()
+        
     yield
+    
+    # Shutdown
+    if getattr(app.state, "arq_pool", None):
+        await app.state.arq_pool.close()
 
 
 app = FastAPI(title="Disaster Resource Coordinator API", lifespan=lifespan)

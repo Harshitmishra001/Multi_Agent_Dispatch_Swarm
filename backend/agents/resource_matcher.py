@@ -1,9 +1,7 @@
 import math
 import pulp
 from typing import List
-from langchain_core.prompts import ChatPromptTemplate
 from backend.schemas.models import VerifiedNeed, ResourceRecord, Allocation, UrgencyLevel
-from backend.config.model_router import get_llm
 
 def haversine_distance(coord1, coord2):
     if not coord1 or not coord2:
@@ -20,16 +18,7 @@ def haversine_distance(coord1, coord2):
     return R * c
 
 class ResourceMatcher:
-    def __init__(self):
-        self.llm = get_llm("local", temperature=0.1)
-        
-        self.tiebreak_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an emergency coordination tie-breaker.
-You are given two locations that are equidistant and have the same priority.
-Choose the one that sounds more accessible or safer based on the name.
-Respond with EXACTLY the need_id of the preferred location. No other text."""),
-            ("user", "Location A (need_id: {id_a}): {loc_a}\nLocation B (need_id: {id_b}): {loc_b}")
-        ])
+
 
     def _urgency_weight(self, urgency: UrgencyLevel) -> int:
         weights = {

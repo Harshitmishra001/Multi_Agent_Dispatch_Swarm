@@ -175,15 +175,14 @@ class TestResourceEndpoint:
 class TestReportSubmission:
     def test_report_accepted(self, client):
         """POST /reports is public and should accept a valid report and encrypt PII."""
-        with patch("backend.api.routes._run_graph"):
-            resp = client.post(
-                "/api/v1/reports",
-                json={
-                    "source_channel": "sms",
-                    "raw_text": "We need water urgently at Downtown.",
-                    "reporter_contact": "555-1234",
-                },
-            )
+        resp = client.post(
+            "/api/v1/reports",
+            json={
+                "source_channel": "sms",
+                "raw_text": "We need water urgently at Downtown.",
+                "reporter_contact": "555-1234",
+            },
+        )
         assert resp.status_code == 200
         body = resp.json()
         assert body["status"] == "accepted"

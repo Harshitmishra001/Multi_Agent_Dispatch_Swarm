@@ -174,7 +174,7 @@ class TestResourceEndpoint:
 
 class TestReportSubmission:
     def test_report_accepted(self, client):
-        """POST /reports is public and should accept a valid report."""
+        """POST /reports is public and should accept a valid report and encrypt PII."""
         with patch("backend.api.routes._run_graph"):
             resp = client.post(
                 "/api/v1/reports",
@@ -187,7 +187,23 @@ class TestReportSubmission:
         assert resp.status_code == 200
         body = resp.json()
         assert body["status"] == "accepted"
-        assert body["report_id"].startswith("rpt-")
+        report_id = body["report_id"]
+        assert report_id.startswith("rpt-")
+        
+        # Verify it was encrypted in DB
+        db = TestSessionLocal()
+        try:
+            from backend.db.models import DBReport
+            db_report = db.query(DBReport).filter(DBReport.report_id == report_id).first()
+            assert db_report is not None
+            assert db_report.reporter_contact != "555-1234"
+            assert db_report.reporter_contact is not None
+            
+            # Verify it decrypts back correctly
+            from backend.security.pii_encryption import decrypt_pii
+            assert decrypt_pii(db_report.reporter_contact) == "555-1234"
+        finally:
+            db.close()
 
     def test_empty_report_rejected(self, client):
         resp = client.post(

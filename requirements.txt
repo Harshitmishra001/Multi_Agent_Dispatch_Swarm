@@ -104,3 +104,5 @@ zstandard==0.25.0
 qdrant-client
 geopy
 pulp[cbc]
+redis==5.0.1
+fakeredis==2.21.3

@@ -12,7 +12,7 @@ class DBReport(Base):
     source_channel = Column(String, index=True)
     raw_text = Column(String)
     submitted_at = Column(DateTime)
-    reporter_contact = Column(String, nullable=True) # Should be encrypted at rest in prod
+    reporter_contact = Column(String, nullable=True) # Encrypted at rest via Fernet
 
 class DBVerifiedNeed(Base):
     __tablename__ = "verified_needs"

@@ -210,14 +210,17 @@ async def submit_report(
         reporter_contact=submission.reporter_contact,
     )
 
+    from backend.security.pii_encryption import encrypt_pii
+    
     # Persist raw report immediately so it survives regardless of pipeline outcome
     db.add(DBReport(
         report_id=report.report_id,
         source_channel=report.source_channel,
         raw_text=report.raw_text,
         submitted_at=report.submitted_at,
-        reporter_contact=report.reporter_contact,
+        reporter_contact=encrypt_pii(report.reporter_contact),
     ))
+
     db.commit()
 
     # Run pipeline in background — HTTP returns immediately

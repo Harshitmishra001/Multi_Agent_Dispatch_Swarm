@@ -9,6 +9,13 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str = "dev-secret-key-disaster-coordinator-change-in-production"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Encryption key for PII at rest (must be 32 URL-safe base64-encoded bytes)
+    ENCRYPTION_KEY: str = "R2yIWPvAweDshbj20vqRMx6OQHEhptrQ5zkmx7ZLNVM="
+
+    # Redis (for distributed rate limiting and Celery/ARQ tasks)
+    REDIS_URL: str = "redis://localhost:6379/0"
+
 
     # LLM (LM Studio or any OpenAI-compatible endpoint)
     LM_STUDIO_BASE_URL: str = "http://localhost:1234/v1"

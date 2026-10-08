@@ -32,16 +32,26 @@ async def lifespan(app: FastAPI):
         app.state.arq_pool = await create_pool(redis_settings)
         logger.info(f"Connected ARQ task pool to {settings.REDIS_URL}")
     except (ConnectionError, TimeoutError):
-        logger.warning("Could not connect to Redis for ARQ tasks. Using fakeredis fallback.")
+        logger.warning("Could not connect to Redis for ARQ tasks. Using in-process asyncio fallback.")
         import fakeredis.aioredis
+        import asyncio
+        import backend.tasks.worker as worker_module
+        
         class FakeArqPool:
             def __init__(self):
                 self._redis = fakeredis.aioredis.FakeRedis()
-            async def enqueue_job(self, *args, **kwargs):
-                logger.info(f"Fake enqueue_job: {args} {kwargs}")
+                
+            async def enqueue_job(self, job_name, *args, **kwargs):
+                logger.info(f"Local fallback executing task in-process: {job_name}")
+                if job_name == "run_graph_task" and args:
+                    asyncio.create_task(worker_module.run_graph_task(None, args[0]))
+                elif job_name == "resume_graph_task" and args:
+                    asyncio.create_task(worker_module.resume_graph_task(None, args[0]))
                 return None
+                
             async def close(self):
                 await self._redis.aclose()
+                
         app.state.arq_pool = FakeArqPool()
         
     yield

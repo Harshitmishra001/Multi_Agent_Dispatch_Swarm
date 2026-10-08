@@ -41,6 +41,13 @@ def setup_test_db():
     """Create all tables and seed test users once for the whole module."""
     import bcrypt as _bcrypt
 
+    test_engine.dispose()
+    if os.path.exists(TEST_DB_PATH):
+        try:
+            os.remove(TEST_DB_PATH)
+        except OSError:
+            pass
+
     Base.metadata.create_all(bind=test_engine)
 
     def _hash(pw: str) -> str:
@@ -175,14 +182,15 @@ class TestResourceEndpoint:
 class TestReportSubmission:
     def test_report_accepted(self, client):
         """POST /reports is public and should accept a valid report and encrypt PII."""
-        resp = client.post(
-            "/api/v1/reports",
-            json={
-                "source_channel": "sms",
-                "raw_text": "We need water urgently at Downtown.",
-                "reporter_contact": "555-1234",
-            },
-        )
+        with patch("backend.tasks.worker.run_graph_task") as mock_task:
+            resp = client.post(
+                "/api/v1/reports",
+                json={
+                    "source_channel": "sms",
+                    "raw_text": "We need water urgently at Downtown.",
+                    "reporter_contact": "555-1234",
+                },
+            )
         assert resp.status_code == 200
         body = resp.json()
         assert body["status"] == "accepted"

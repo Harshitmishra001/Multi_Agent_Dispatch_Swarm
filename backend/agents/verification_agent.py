@@ -56,7 +56,6 @@ class VerificationAgent:
             limit=2,
             score_threshold=self.similarity_threshold
         )
-        print("DEBUG process results:", results)
         
         if len(results) == 1:
             match_id = results[0].payload.get("need_id")

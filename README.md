@@ -1,247 +1,203 @@
 # Multi-Agent Emergency Dispatch Swarm
 
-A multi-agent AI system that triages emergency reports, matches resources, and generates dispatch plans using LangGraph, FastAPI, and React. 
+Emergency dispatch is currently one of India's biggest hurdles. Incidents like the Satya Niketan building collapse and floods across North India showed how chaotic ground reality gets when disaster strikes. I started thinking about how India is leading in technology across so many sectors, and is still remarkably slow when it comes to quick emergency response and utilizing that tech where every minute counts. 
 
-This project aims to automate emergency resource dispatching by converting chaotic, unstructured disaster reports into verified, mathematically matched deployment plans, while maintaining a strict "Human-in-the-Loop" checkpoint for safety and oversight.
+During emergencies, information floods in from SMS, phone calls, and social media. People are trapped, supplies run out, and the reports coming in are messy, emotional, and full of duplicates. Right now dispatchers are juggling spreadsheets, phone calls, and manual guesswork. That is where this idea came in: what if we let AI agents read the chaotic reports, verify what is real, remove duplicates, and calculate exact dispatch plans, while keeping a human dispatcher in the loop to sign off on uncertain cases? 
 
-## New Dispatch Workstation UI
+This led me to build this project: a multi-agent emergency coordination system built with LangGraph, FastAPI, and React.
 
-The frontend has been completely redesigned into a professional, restrained Emergency Operations Workstation. It features a tactical map workspace (70% screen width), a tight high-contrast review queue, and clean system telemetry, moving away from AI dashboard tropes towards functional dispatching.
+---
 
+## The Core Problem with Pure LLMs in Emergencies
 
-## Project Status
+When I started designing this, my first instinct was to see if an LLM could match supplies to victims directly. I quickly realized that was a dangerous mistake. 
 
-**Current Phase:** Entering Phase D (Professional Grade)
+LLMs are great at reading messy language and understanding what people need, and they are completely unreliable at constraint mathematics. When an LLM allocates resources, it hallucinates quantities, sends medical supplies to the wrong places, and ignores physical capacity limits. 
 
-The following phases have been successfully completed:
-- ✅ **Phase A (Core Fixes)**: Resolved all critical backend bugs, secured the auth system with JWT and bcrypt, and made the LangGraph pipeline functional.
-- ✅ **Phase B (Frontend Redesign)**: Replaced the basic dashboard with a professional, restrained Emergency Operations Workstation featuring a 70% screen-width tactical map and high-contrast review queue.
-- ✅ **Phase C (AI Engine & Geocoding)**: Upgraded the resource matcher to use an Integer Linear Programming (ILP) optimizer (`pulp`), added actual geocoding (`geopy`), implemented persistent vector deduplication (`Qdrant`), and added an adversarial test suite.
-- ✅ **CI/CD Pipeline**: Added GitHub Actions workflow running automated Pytest test suite and Vite production builds on every push.
+Because of that, I separated the intelligence into two distinct layers:
+1. Language and verification: LLMs handle reading the text, extracting needs, and writing human summaries.
+2. Math and logistics: An Integer Linear Programming (ILP) solver handles the actual resource allocation. The solver treats allocation as an optimization problem, maximizing urgency-weighted coverage while respecting exact depot inventory and road distances.
 
-**Remaining Tasks (Phase D):**
-- [ ] **Celery + Redis**: Background task workers for heavy LLM operations
-- [ ] **WebSockets**: Real-time live updates for the frontend
-- [ ] **Docker & PostgreSQL**: Containerize and upgrade DB for production scaling
-- [ ] **Prometheus Metrics**: Expose telemetry for Grafana dashboarding
-- [ ] **Data Security**: Encrypt PII at rest
+---
 
-## High-Level System Architecture
+## How the 5-Agent Pipeline Works
 
-The system employs a decoupled architecture consisting of a React frontend, a FastAPI backend, and an asynchronous LangGraph-powered AI pipeline.
+A raw emergency report moves through five distinct agents connected via a LangGraph state machine:
 
-```mermaid
-graph TD
-    subgraph Frontend [React App]
-        Router[React Router]
-        Login[Login Page]
-        Dash[Dashboard]
-        Map[LiveMap]
-        Queue[Review Queue]
-        
-        Router --> Login
-        Router --> Dash
-        Dash --> Map
-        Dash --> Queue
-    end
-
-    subgraph Backend [FastAPI Server]
-        API[API Router]
-        Auth[Auth Service]
-        DB[(SQLite DB)]
-        
-        API <--> Auth
-        API <--> DB
-        
-        subgraph Pipeline [LangGraph AI Pipeline]
-            Ingest[Ingestion Agent]
-            Verify[Verification Agent]
-            Match[Resource Matcher]
-            Synth[Plan Synthesizer]
-            Eval[Evaluator Agent]
-            
-            Ingest --> Verify
-            Verify -->|Human Review Needed?| HumanWait[Wait for POST /review]
-            Verify -->|Auto-Pass| Match
-            HumanWait --> Match
-            Match --> Synth
-            Synth --> Eval
-        end
-        
-        API -.->|Background Task| Pipeline
-        Pipeline <--> DB
-    end
-
-    Frontend -- REST API --> Backend
+```
+[Raw Report] 
+      │
+      ▼
+1. Ingestion Agent (LLM + Nominatim Geocoder)
+      │
+      ▼
+2. Verification Agent (Sentence Transformers + Qdrant Vector Store)
+      │
+      ├─► Confidence < 0.6 or Duplicate ──► [Human Review Queue] ──► (Dispatcher Approves)
+      │                                                                        │
+      ▼ (High Confidence & Unique)                                            │
+3. Resource Matcher (PuLP Integer Linear Programming) ◄────────────────────────┘
+      │
+      ▼
+4. Plan Synthesizer (LLM Narrative + Grounded ID Verification)
+      │
+      ▼
+5. Evaluator Agent (OpenRouter Ling-3.1-Flash or Local Model Critic)
+      │
+      ├─► Passed (Fairness & Coverage OK) ──► [Dispatch Plan Finalized]
+      └─► Failed (Revision Needed) ─────────► [Loop back to Matcher (max 2 retries)]
 ```
 
-### Architectural Positives
-- **Decoupling via Background Tasks:** The HTTP request `POST /reports` returns immediately while the graph runs in the background, preventing timeouts.
-- **Graph-based Orchestration:** Using LangGraph for the pipeline enables complex state management, cyclical logic (revisions), and human-in-the-loop pauses.
-- **Optimistic UI:** The frontend leverages optimistic updates in the Review Queue for a snappier user experience.
+### 1. Ingestion Agent
+Takes unstructured text (SMS or web form) and extracts a structured schema: need type (medical, water, food, shelter, rescue), quantity estimate, and urgency. It passes the extracted location text to Nominatim with LRU caching to get latitude and longitude. If the LLM produces malformed output or goes offline, it automatically falls back to regex pattern extraction so reports never get dropped.
 
+### 2. Verification Agent
+Checks if this incoming report is a duplicate of something already reported. It encodes the need into a 384-dimensional vector using `all-MiniLM-L6-v2` and queries a local Qdrant vector database. If a duplicate is detected or if extraction confidence falls below 0.6, it halts the graph and pushes the report directly into the human review queue.
 
-## System Interaction Flow
+### 3. Human in the Loop Checkpoint
+Rather than letting an autonomous system dispatch trucks on low-confidence data, LangGraph pauses the execution thread using persistent SQLite checkpointing. The report appears in the dispatcher dashboard. A human clicks Approve or Reject. Once approved, the exact execution thread resumes where it left off.
 
-This sequence diagram illustrates how the asynchronous human-in-the-loop flow operates across the components:
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant FastAPI
-    participant LangGraph
-    participant DB
-
-    User->>Frontend: Submit Report
-    Frontend->>FastAPI: POST /reports
-    FastAPI->>DB: Save RawReport
-    FastAPI->>LangGraph: _run_graph (Background)
-    FastAPI-->>Frontend: 202 Accepted (report_id)
-    
-    Note over LangGraph: Ingestion & Verification<br/>extracts and embeddings
-    LangGraph->>DB: Save VerifiedNeed (needs_review=True)
-    LangGraph->>LangGraph: PAUSE (Interrupt)
-    
-    Frontend->>FastAPI: GET /review/queue
-    FastAPI->>DB: Fetch pending needs
-    FastAPI-->>Frontend: Returns Queue
-    
-    User->>Frontend: Clicks "Approve"
-    Frontend->>FastAPI: POST /review/{need_id}
-    FastAPI->>DB: Update needs_review=False
-    FastAPI->>LangGraph: _resume(thread_id)
-    FastAPI-->>Frontend: 200 OK
-    
-    Note over LangGraph: Matcher, Synthesizer, Evaluator run
-    LangGraph->>DB: Save DispatchPlan
-```
-
-## 🧠 LangGraph AI Pipeline Architecture
-
-The intelligence of the system is distributed across five specialized agents, orchestrated by LangGraph. Below is the state machine flow showing how a raw message travels through the system.
-
-```mermaid
-graph TD
-    A([User Submits Raw Report]) --> B[Ingestion Agent]
-    B --> C[Verification Agent]
-    
-    C -->|High Confidence & Unique| D[Resource Matcher]
-    C -->|Low Confidence or Duplicate| E{Human-in-the-Loop Pause}
-    
-    E -.->|Dispatcher Approves| D
-    E -.->|Dispatcher Rejects| F([Flow Ended / Archived])
-    
-    D --> G[Plan Synthesizer]
-    G --> H[Evaluator Agent]
-    
-    H -->|Passes Fairness/Coverage| I([Dispatch Plan Finalized])
-    H -->|Fails Thresholds| J{Revision Count < 2?}
-    
-    J -- Yes --> D
-    J -- No --> I
-```
-
-## 📝 Example: How a Message Breaks Down
-
-Here is an example of what happens at each layer of the pipeline when a chaotic message is received.
-
-### 1. Raw Input (From SMS/Social Media)
-> *"URGENT: We have about 50 people trapped at the community center on 5th street and we are completely out of water. Please send help quickly!"*
-
-### 2. Ingestion Agent
-Extracts the messy text into a structured data contract.
-```json
-{
-  "location_text": "community center on 5th street",
-  "need_type": "water",
-  "quantity_estimate": 50,
-  "stated_urgency": "critical",
-  "extraction_confidence": 0.95
-}
-```
-
-### 3. Verification Agent
-Checks against past reports using embeddings to prevent duplicate dispatches, assigns an internal confidence score, and flags for review if necessary.
-```json
-{
-  "need_id": "need-7a98b2",
-  "verification_confidence": 0.92,
-  "requires_human_review": false, 
-  "duplicate_of": null
-}
-```
-*(If `requires_human_review` was true, the pipeline would halt here and wait for the dashboard dispatcher).*
-
-### 4. Resource Matcher
-Queries the database (e.g., SQLite) for available "water" inventory and calculates distances.
-```json
-{
-  "allocations": [
-    {
-      "resource_id": "res-water-wh1",
-      "quantity_allocated": 50,
-      "distance_km": 3.2,
-      "allocation_method": "greedy_distance"
-    }
-  ]
-}
-```
+### 4. Resource Matcher (Mathematical Allocator)
+Takes the verified needs and available depot inventory, and runs an Integer Linear Programming model using `pulp`. The objective function maximizes coverage prioritized by urgency (critical needs get 4x weight) while penalizing travel distance using Haversine formulas. It guarantees zero inventory over-allocation.
 
 ### 5. Plan Synthesizer
-Turns the raw allocation data back into a human-readable narrative for the dispatchers and logisticians.
-> *"Deploying 50 units of Water from Warehouse 1 (res-water-wh1) to the community center on 5th street to address critical shortage. Estimated travel distance is 3.2km."*
+Turns the solver's raw allocation numbers back into a clear, grounded narrative for field rescue teams. It runs a regex validation pass to ensure the LLM never hallucinates fake depot IDs or need IDs that were not present in the solver's output.
 
 ### 6. Evaluator Agent
-Acts as an internal critic. Scores the plan.
-```json
-{
-  "coverage_pct": 100.0,
-  "critical_unmet_count": 0,
-  "fairness_score": 0.9,
-  "passed": true,
-  "rationale": "Plan successfully covers 100% of the critical water need with the closest available resource."
-}
+Acts as an internal senior dispatcher. It evaluates geographic fairness, overall coverage percentage, and unmet critical needs. If critical needs were left unaddressed despite available stock, it sends the plan back to the Matcher with revision notes.
+
+---
+
+## System Architecture
+
+```
+┌────────────────────────────────────────────────────────┐
+│               React Workstation (Vite)                 │
+│  - Tactical Leaflet Live Map                           │
+│  - Human Review Queue with Optimistic Updates          │
+│  - JWT Authentication (Reviewer vs Admin)              │
+└──────────────────────────┬─────────────────────────────┘
+                           │ HTTP REST
+┌──────────────────────────▼─────────────────────────────┐
+│                 FastAPI Backend                        │
+│  - Role-based Access Control (Reviewer / Admin)        │
+│  - Sliding-Window Rate Limiter                         │
+│  - PII Encryption at Rest (Fernet)                     │
+│  - Atomic Row-Level Locking (with_for_update)          │
+│  - Immutable Plan Audit Trail                          │
+└──────────────┬──────────────────────────┬──────────────┘
+               │                          │
+┌──────────────▼────────────┐  ┌──────────▼──────────────┐
+│  ARQ / In-Process Worker  │  │   SQLite + SqliteSaver  │
+│  - Background execution   │  │   - Report & Needs DB   │
+│  - Durable task queue     │  │   - LangGraph State DB  │
+└──────────────┬────────────┘  └─────────────────────────┘
+               │
+┌──────────────▼─────────────────────────────────────────┐
+│              LangGraph Coordination Swarm              │
+│  - Ingestion, Verification, PuLP Solver, Evaluator     │
+│  - Qdrant Vector Search for Deduplication              │
+│  - Model Router: Local LM Studio or OpenRouter Cloud   │
+└────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Getting Started
+---
+
+## Security and Reliability Highlights
+
+- PII Protection: Reporter contact information is encrypted before it touches SQLite using `cryptography.fernet` symmetric encryption, keeping personal phone numbers protected at rest.
+- Concurrency Protection: Resource inventory decrement uses SQLAlchemy `with_for_update()` row-level locks inside atomic transactions, preventing two parallel dispatches from double-booking the same supplies.
+- Audit Logging: Any administrative override of an automated dispatch plan writes an immutable record to `DBPlanAudit` capturing the admin username, timestamp, previous rationale, and new rationale.
+- Flexible Intelligence Tiering: The model router supports running fully offline on local LM Studio (`smollm3-3b`), or connecting to external OpenAI-compatible cloud providers such as OpenRouter running `inclusionai/ling-3.1-flash`.
+- Resilient Background Processing: Report submissions enqueue tasks via ARQ. In production with Redis, tasks survive API crashes. In local development without Redis, the engine automatically falls back to in-process async workers so you do not need complex infrastructure just to test.
+
+---
+
+## Tech Stack
+
+- Orchestration: LangGraph with SQLite checkpointing
+- Optimization: PuLP (Coin-OR CBC solver)
+- Backend: FastAPI, SQLAlchemy, Uvicorn, ARQ
+- Vector Database: Qdrant (local embedded mode)
+- Embeddings: Sentence Transformers (`all-MiniLM-L6-v2`)
+- Security: Bcrypt, PyJWT, Cryptography (Fernet)
+- Geocoding: Geopy (Nominatim with LRU cache)
+- Frontend: React 18, Vite, Tailwind CSS, Leaflet, Lucide Icons
+
+---
+
+## Quickstart Guide
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- [LM Studio](https://lmstudio.ai/) running a local model (e.g., `smollm3-3b`) on port `1234`.
+- (Optional) [LM Studio](https://lmstudio.ai/) running locally on port 1234, or an OpenRouter API key
 
-### Backend Setup
-1. Clone the repository and navigate to the root directory.
-2. Create a virtual environment and install dependencies:
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   pip install -r requirements.txt
-   ```
-3. Start the FastAPI server:
-   ```bash
-   uvicorn backend.main:app --reload
-   ```
-   *The API will be available at `http://127.0.0.1:8000`*
-
-### Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-   *The Dashboard will be available at `http://localhost:5173`*
-
-### Running Tests
-Run the test suite across the multi-agent pipeline and solver:
+### 1. Backend Setup
 ```bash
-pytest tests/ -v
+# Clone the repository
+git clone https://github.com/Harshitmishra001/Multi_Agent_Dispatch_Swarm.git
+cd Multi_Agent_Dispatch_Swarm
+
+# Create and activate virtual environment
+python -m venv .venv
+.venv\Scripts\activate   # Windows
+# source .venv/bin/activate  # Linux / Mac
+
+# Install backend dependencies
+pip install -r requirements.txt
 ```
+
+### 2. Configure Environment
+Create a `.env` file in the project root:
+```env
+# Database & Auth
+DATABASE_URL=sqlite:///./disaster_coordinator.db
+JWT_SECRET_KEY=your-secure-jwt-secret-key-here
+
+# Optional: Cloud Strong Model Tier (e.g. OpenRouter)
+STRONG_MODEL_API_KEY=your_openrouter_api_key
+STRONG_MODEL_BASE_URL=https://openrouter.ai/api/v1
+STRONG_MODEL_NAME=inclusionai/ling-3.1-flash
+
+# Optional: Local LM Studio fallback
+LM_STUDIO_BASE_URL=http://localhost:1234/v1
+LM_STUDIO_MODEL=smollm3-3b
+```
+
+### 3. Run the Backend Server
+```bash
+uvicorn backend.main:app --reload
+```
+The API starts at `http://127.0.0.1:8000`. On first boot, it automatically seeds default accounts:
+- Reviewer: `alice` / `reviewer_pass`
+- Admin: `admin` / `admin_pass`
+
+### 4. Frontend Setup
+In a new terminal:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The tactical dashboard runs at `http://localhost:5173`. Log in with `alice` or `admin`.
+
+---
+
+## Automated Testing
+
+The project includes an automated test suite covering unit tests, adversarial prompt attacks, solver accuracy, and end-to-end API flows:
+
+```bash
+pytest -v
+```
+
+All 35 tests run in under 20 seconds:
+- `tests/unit/test_resource_matcher.py`: Validates that the PuLP optimizer respects urgency and capacity constraints.
+- `tests/unit/test_model_router.py`: Tests model routing between local LM Studio and cloud providers.
+- `tests/unit/test_worker.py`: Verifies ARQ background worker execution and LangGraph streaming.
+- `tests/unit/test_verification_agent.py`: Tests deduplication recall with embedding vectors.
+- `tests/unit/test_plan_synthesizer.py`: Tests hallucination rejection when unauthorized IDs are produced.
+- `tests/test_adversarial.py`: Tests prompt injection resistance and conflicting urgent requests.
+- `tests/integration/test_graph.py`: Verifies LangGraph human review interrupts and evaluator revision loops.
+- `tests/integration/test_api.py`: 16 integration tests verifying auth, PII encryption at rest, rate limiting (429), human approval/rejection endpoints, and admin audit logging.

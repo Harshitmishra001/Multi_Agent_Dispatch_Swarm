@@ -23,6 +23,11 @@ def get_llm(tier: ModelTier, temperature: float = 0.0) -> ChatOpenAI:
             base_url = settings.STRONG_MODEL_BASE_URL or os.environ.get("STRONG_MODEL_BASE_URL")
             if base_url:
                 kwargs["base_url"] = base_url
+                if "openrouter.ai" in base_url:
+                    kwargs["default_headers"] = {
+                        "HTTP-Referer": "https://github.com/Harshitmishra001/Multi_Agent_Dispatch_Swarm",
+                        "X-Title": "Disaster Resource Coordinator",
+                    }
             return ChatOpenAI(**kwargs)
             
     # Fallback / Local Tier

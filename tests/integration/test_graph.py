@@ -8,7 +8,6 @@ from backend.graph.build_graph import build_coordinator_graph
 @pytest.fixture
 def graph():
     with patch('backend.agents.ingestion_agent.get_llm'), \
-         patch('backend.agents.resource_matcher.get_llm'), \
          patch('backend.agents.plan_synthesizer.get_llm'), \
          patch('backend.agents.evaluator_agent.get_llm'):
         return build_coordinator_graph()

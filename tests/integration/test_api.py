@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.db.models import Base, DBUser, DBResource, DBDispatchPlan, DBPlanAudit
+from backend.db.models import Base, DBUser, DBResource, DBDispatchPlan, DBPlanAudit, DBVerifiedNeed
 from backend.security.auth import get_db  # canonical get_db shared by routes + auth middleware
 from backend.main import app
 
@@ -233,6 +233,91 @@ class TestPendingReview:
     def test_unauthenticated_queue_rejected(self, client):
         resp = client.get("/api/v1/needs/pending-review")
         assert resp.status_code == 401
+
+    def test_reviewer_can_approve_need(self, client):
+        db = TestSessionLocal()
+        need_id = "need-test-approve-1"
+        try:
+            db.add(DBVerifiedNeed(
+                need_id=need_id,
+                source_report_ids='["rpt-appr-1"]',
+                location_text="Zone A",
+                need_type="water",
+                quantity_estimate=10,
+                urgency="high",
+                verification_confidence=0.5,
+                requires_human_review=True,
+            ))
+            db.commit()
+        finally:
+            db.close()
+
+        token = get_token(client, "alice", "reviewer_pass")
+        with patch("backend.tasks.worker.resume_graph_task"):
+            resp = client.post(
+                f"/api/v1/needs/{need_id}/review",
+                json={"action": "approve"},
+                headers={"Authorization": f"Bearer {token}"},
+            )
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "approved_and_resumed"
+
+        db = TestSessionLocal()
+        try:
+            row = db.query(DBVerifiedNeed).filter(DBVerifiedNeed.need_id == need_id).first()
+            assert row is not None
+            assert row.requires_human_review is False
+        finally:
+            db.close()
+
+    def test_reviewer_can_reject_need(self, client):
+        db = TestSessionLocal()
+        need_id = "need-test-reject-1"
+        try:
+            db.add(DBVerifiedNeed(
+                need_id=need_id,
+                source_report_ids='["rpt-rej-1"]',
+                location_text="Zone B",
+                need_type="food",
+                quantity_estimate=5,
+                urgency="low",
+                verification_confidence=0.3,
+                requires_human_review=True,
+            ))
+            db.commit()
+        finally:
+            db.close()
+
+        token = get_token(client, "alice", "reviewer_pass")
+        resp = client.post(
+            f"/api/v1/needs/{need_id}/review",
+            json={"action": "reject"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "rejected"
+
+        db = TestSessionLocal()
+        try:
+            row = db.query(DBVerifiedNeed).filter(DBVerifiedNeed.need_id == need_id).first()
+            assert row is None
+        finally:
+            db.close()
+
+    def test_rate_limit_exceeded(self, client):
+        """Rapid report submissions from the same IP must trigger HTTP 429."""
+        with patch("backend.tasks.worker.run_graph_task"):
+            statuses = []
+            for i in range(12):
+                resp = client.post(
+                    "/api/v1/reports",
+                    json={
+                        "source_channel": "sms",
+                        "raw_text": f"Rate limit burst test {i}",
+                    },
+                )
+                statuses.append(resp.status_code)
+        assert 429 in statuses
 
 
 class TestPlanOverrideAudit:

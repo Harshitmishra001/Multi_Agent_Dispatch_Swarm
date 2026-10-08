@@ -17,10 +17,15 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
 
-    # LLM (LM Studio or any OpenAI-compatible endpoint)
+    # LLM — Local Tier (LM Studio or local OpenAI-compatible endpoint)
     LM_STUDIO_BASE_URL: str = "http://localhost:1234/v1"
     LM_STUDIO_API_KEY: str = "lm-studio"
     LM_STUDIO_MODEL: str = "smollm3-3b"
+
+    # LLM — Strong Tier (OpenAI, OpenRouter, InclusionAI / Ling, etc.)
+    STRONG_MODEL_BASE_URL: Optional[str] = None
+    STRONG_MODEL_API_KEY: Optional[str] = None
+    STRONG_MODEL_NAME: str = "gpt-4o"
 
     # CORS — comma-separated origins, e.g. "http://localhost:5173"
     ALLOWED_ORIGINS: str = "http://localhost:5173"

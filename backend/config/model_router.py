@@ -13,14 +13,17 @@ def get_llm(tier: ModelTier, temperature: float = 0.0) -> ChatOpenAI:
       otherwise falls back to the local model.
     """
     if tier == "strong":
-        # Check if an OpenAI API key is provided via environment
-        openai_key = os.environ.get("OPENAI_API_KEY")
-        if openai_key:
-            return ChatOpenAI(
-                api_key=openai_key, # type: ignore
-                model="gpt-4o",
-                temperature=temperature
-            )
+        api_key = settings.STRONG_MODEL_API_KEY or os.environ.get("OPENAI_API_KEY")
+        if api_key:
+            kwargs = {
+                "api_key": api_key,
+                "model": settings.STRONG_MODEL_NAME or os.environ.get("STRONG_MODEL_NAME", "gpt-4o"),
+                "temperature": temperature,
+            }
+            base_url = settings.STRONG_MODEL_BASE_URL or os.environ.get("STRONG_MODEL_BASE_URL")
+            if base_url:
+                kwargs["base_url"] = base_url
+            return ChatOpenAI(**kwargs)
             
     # Fallback / Local Tier
     return ChatOpenAI(

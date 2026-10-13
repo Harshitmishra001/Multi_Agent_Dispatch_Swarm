@@ -1,0 +1,92 @@
+# ── Disaster Resource Coordinator — docker-compose.yml ────────────────────────
+# Starts the full production stack: web, worker, Postgres, Redis, Prometheus.
+#
+# Quick start:
+#   cp .env.example .env        # fill in your secrets
+#   docker compose up --build
+#
+# Exposed ports (host → container):
+#   8000  → FastAPI  (web)
+#   9090  → Prometheus UI
+#
+# Postgres and Redis are NOT exposed to the host by default for security.
+# Add "ports:" entries if you need direct access for debugging.
+
+services:
+  # ── Database ────────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: disaster_coordinator
+      POSTGRES_USER: dc_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_in_production}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dc_user -d disaster_coordinator"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis (ARQ task queue + Pub/Sub) ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── FastAPI web process ───────────────────────────────────────────────────────
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://dc_user:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/disaster_coordinator
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── ARQ worker process ────────────────────────────────────────────────────────
+  worker:
+    build: .
+    restart: unless-stopped
+    command: python -m arq backend.tasks.worker.WorkerSettings
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://dc_user:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/disaster_coordinator
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheusdata:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=15d"
+
+volumes:
+  pgdata:
+  redisdata:
+  prometheusdata:

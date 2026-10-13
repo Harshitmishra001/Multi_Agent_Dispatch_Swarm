@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Tests
+tests/
+pytest.ini
+*.db
+audit.log
+benchmark_results*.json
+
+# Node / frontend (built separately)
+frontend/node_modules/
+frontend/dist/
+
+# Dev tooling
+.github/
+.unlazy/
+scratch/
+.pytest_cache/
+qdrant_data/
+
+# Secrets
+.env
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Docs / planning
+*.md
+*.png
+*.json
+DOCS.md
+IMPROVEMENTS.md
+GATES.md
+generate_diagram.py
+run_benchmarks*.py
+fix_readme.py

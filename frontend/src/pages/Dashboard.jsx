@@ -1,15 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LiveMap from '../components/LiveMap';
 import ReviewQueue from '../components/ReviewQueue';
 import ReportModal from '../components/ReportModal';
 import client from '../api/client';
+import { useDisasterSocket } from '../hooks/useDisasterSocket';
 
 export default function Dashboard() {
   const [health, setHealth] = useState({ connected: false, latency: 0 });
   const [showReportModal, setShowReportModal] = useState(false);
   const [stats, setStats] = useState({ needs: 0, resources: 0 });
+  // Increment to trigger child component refreshes on real-time events
+  const [refreshTick, setRefreshTick] = useState(0);
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (!localStorage.getItem('token')) {
@@ -37,6 +41,16 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [navigate]);
 
+  // Real-time WebSocket events — trigger child refreshes on data changes
+  const handleWsEvent = useCallback((payload) => {
+    const refreshEvents = ['NEED_UPDATED', 'NEED_PROCESSING', 'NEED_ERROR', 'PLAN_READY', 'NEED_RESUMING'];
+    if (refreshEvents.includes(payload.event)) {
+      setRefreshTick(t => t + 1);
+    }
+  }, []);
+
+  const { connected: wsConnected } = useDisasterSocket(handleWsEvent);
+
   return (
     <div className="h-screen w-full flex flex-col overflow-hidden bg-bg-base text-text-primary">
       {/* HEADER BAR - 48px fixed */}
@@ -53,6 +67,11 @@ export default function Dashboard() {
             {health.connected ? `SYSTEM OPERATIONAL` : 'SYSTEM OFFLINE'}
           </span>
           {health.connected && <span className="text-text-muted">{health.latency} ms</span>}
+          {/* WebSocket live indicator */}
+          <span
+            title={wsConnected ? 'Live updates active' : 'Reconnecting…'}
+            className={`ml-2 w-1.5 h-1.5 rounded-full ${wsConnected ? 'bg-success animate-pulse' : 'bg-warning'}`}
+          />
         </div>
 
         <div className="flex items-center justify-end gap-6 w-1/3">
@@ -73,14 +92,15 @@ export default function Dashboard() {
       <main className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[1fr_320px]">
         {/* MAP CONTAINER */}
         <div className="h-full border-r border-border-subtle relative bg-bg-surface">
-          <LiveMap onStatsUpdate={setStats} />
+          <LiveMap onStatsUpdate={setStats} refreshTick={refreshTick} />
         </div>
         
         {/* REVIEW QUEUE PANEL */}
         <div className="h-full bg-bg-surface overflow-hidden flex flex-col">
-          <ReviewQueue />
+          <ReviewQueue refreshTick={refreshTick} />
         </div>
       </main>
+
 
       {/* STATUS BAR - 32px fixed */}
       <footer className="h-8 shrink-0 border-t border-border-subtle bg-bg-surface flex items-center justify-between px-4 text-[11px] font-medium text-text-muted uppercase tracking-wider">

@@ -19,6 +19,12 @@ from backend.schemas.models import (
 from backend.security.auth import get_current_admin, get_current_reviewer, get_db
 from backend.security.input_sanitization import sanitize_report_text
 from backend.security.rate_limiter import check_rate_limit
+from backend.metrics import (
+    REPORTS_SUBMITTED,
+    RATE_LIMIT_HITS,
+    REVIEW_ACTIONS,
+    REVIEW_QUEUE_SIZE,
+)
 
 router = APIRouter()
 
@@ -213,6 +219,7 @@ async def submit_report(
     # Enqueue pipeline task durably via ARQ
     await request.app.state.arq_pool.enqueue_job('run_graph_task', report.model_dump())
 
+    REPORTS_SUBMITTED.inc()
     return {"status": "accepted", "report_id": report.report_id}
 
 
@@ -279,11 +286,15 @@ async def review_need(
         # Mark rejected — pipeline will not continue for this need
         db.delete(row)
         db.commit()
+        REVIEW_ACTIONS.labels(action="reject").inc()
+        REVIEW_QUEUE_SIZE.dec()
         return {"status": "rejected", "need_id": need_id}
 
     # Approve: clear the review flag in DB
     row.requires_human_review = False
     db.commit()
+    REVIEW_ACTIONS.labels(action="approve").inc()
+    REVIEW_QUEUE_SIZE.dec()
 
     # Resume the LangGraph thread — thread_id is the source report_id
     source_ids = json.loads(row.source_report_ids) if row.source_report_ids else []
@@ -291,7 +302,7 @@ async def review_need(
 
     # Enqueue resume task durably via ARQ
     await request.app.state.arq_pool.enqueue_job('resume_graph_task', thread_id)
-    
+
     return {"status": "approved_and_resumed", "need_id": need_id, "thread_id": thread_id}
 
 

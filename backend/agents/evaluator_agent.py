@@ -52,6 +52,11 @@ You have the final say on whether a plan is released to the field or sent back f
                 "critical_unmet": critical_unmet_count,
                 "format_instructions": self.parser.get_format_instructions()
             })
+            try:
+                from backend.metrics import LLM_REQUESTS
+                LLM_REQUESTS.labels(tier="strong", status="success").inc()
+            except Exception:
+                pass
             
             # If there are critical unmet needs but overall coverage is low, we might 
             # allow it because of physical lack of resources, but the LLM decides.
@@ -69,6 +74,12 @@ You have the final say on whether a plan is released to the field or sent back f
         except Exception as e:
             # Fallback for LLM failure
             print(f"Evaluator LLM error: {e}")
+            try:
+                from backend.metrics import LLM_REQUESTS, LLM_FALLBACKS
+                LLM_REQUESTS.labels(tier="strong", status="error").inc()
+                LLM_FALLBACKS.inc()
+            except Exception:
+                pass
             passed = critical_unmet_count == 0 # Simplest fallback heuristic
             return EvaluationResult(
                 plan_id=plan.plan_id,

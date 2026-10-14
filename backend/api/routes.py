@@ -73,6 +73,15 @@ def _load_existing_needs(db: Session) -> List[VerifiedNeed]:
     return needs
 
 
+def _sync_review_queue_size(db: Session):
+    """Synchronize REVIEW_QUEUE_SIZE Prometheus gauge with active DB queue count."""
+    try:
+        count = db.query(DBVerifiedNeed).filter(DBVerifiedNeed.requires_human_review == True).count()
+        REVIEW_QUEUE_SIZE.set(count)
+    except Exception:
+        pass
+
+
 def _persist_graph_state(report_id: str, thread_id: str, db: Session):
     """Write VerifiedNeed and DispatchPlan from completed graph state to DB.
 
@@ -111,6 +120,8 @@ def _persist_graph_state(report_id: str, thread_id: str, db: Session):
                 requires_human_review=verified.requires_human_review,
                 duplicate_of=verified.duplicate_of,
             ))
+            if verified.requires_human_review:
+                _sync_review_queue_size(db)
 
     # Persist DispatchPlan + Allocations with atomic inventory reservation
     plan = vals.get("plan")
@@ -287,14 +298,14 @@ async def review_need(
         db.delete(row)
         db.commit()
         REVIEW_ACTIONS.labels(action="reject").inc()
-        REVIEW_QUEUE_SIZE.dec()
+        _sync_review_queue_size(db)
         return {"status": "rejected", "need_id": need_id}
 
     # Approve: clear the review flag in DB
     row.requires_human_review = False
     db.commit()
     REVIEW_ACTIONS.labels(action="approve").inc()
-    REVIEW_QUEUE_SIZE.dec()
+    _sync_review_queue_size(db)
 
     # Resume the LangGraph thread — thread_id is the source report_id
     source_ids = json.loads(row.source_report_ids) if row.source_report_ids else []

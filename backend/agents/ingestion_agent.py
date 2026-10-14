@@ -54,6 +54,11 @@ You must return ONLY a valid JSON object matching the requested schema. Do NOT w
                 "raw_text": report.raw_text,
                 "format_instructions": self.parser.get_format_instructions()
             })
+            try:
+                from backend.metrics import LLM_REQUESTS
+                LLM_REQUESTS.labels(tier="local", status="success").inc()
+            except Exception:
+                pass
             return self._build_extracted_need(report, result, confidence=0.9)
             
         except OutputParserException:
@@ -63,11 +68,26 @@ You must return ONLY a valid JSON object matching the requested schema. Do NOT w
                     "raw_text": report.raw_text,
                     "format_instructions": self.parser.get_format_instructions()
                 })
+                try:
+                    from backend.metrics import LLM_REQUESTS
+                    LLM_REQUESTS.labels(tier="local", status="success").inc()
+                except Exception:
+                    pass
                 return self._build_extracted_need(report, result, confidence=0.8)
             except Exception:
+                try:
+                    from backend.metrics import LLM_REQUESTS
+                    LLM_REQUESTS.labels(tier="local", status="error").inc()
+                except Exception:
+                    pass
                 # Fallback to regex/keyword extraction if LLM fails completely
                 return self._regex_fallback(report)
         except Exception:
+            try:
+                from backend.metrics import LLM_REQUESTS
+                LLM_REQUESTS.labels(tier="local", status="error").inc()
+            except Exception:
+                pass
             return self._regex_fallback(report)
 
 

@@ -37,10 +37,10 @@ def test_urgency_manipulation(agent):
     )
     extracted = agent.process(report)
     
-    # Is it critical? The LLM might actually say critical based on the text. 
-    # But ideally it understands it's a minor scrape. Let's just assert it processes without crashing.
+    # Verify that stated urgency does not blindly bypass validation and result in false high confidence
     assert extracted is not None
     assert extracted.location_text is not None
+    assert extracted.extraction_confidence < 0.8, f"Adversarial manipulation resulted in high confidence: {extracted.extraction_confidence}"
 
 def test_format_injection(agent):
     # Test if it handles weird json-like injections

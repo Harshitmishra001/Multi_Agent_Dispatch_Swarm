@@ -42,3 +42,7 @@ Thumbs.db
 # Project Docs
 disaster-resource-coordinator-spec.md
 IMPROVEMENTS.md
+
+# Scratch and Logs
+scratch/
+*.log

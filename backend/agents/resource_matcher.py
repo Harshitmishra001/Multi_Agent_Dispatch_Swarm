@@ -48,12 +48,21 @@ class ResourceMatcher:
                 if r.resource_type == n.need_type:
                     # Create integer variable bounded by 0 and min(need, available)
                     upper = min(n.quantity_estimate, r.quantity_available)
-                    x_vars[n.need_id][r.resource_id] = pulp.LpVariable(
-                        f"x_{n.need_id}_{r.resource_id}", 
-                        lowBound=0, 
-                        upBound=upper, 
-                        cat=pulp.LpInteger
-                    )
+                    var_name = f"x_{n.need_id}_{r.resource_id}"
+                    if hasattr(prob, "add_variable"):
+                        x_vars[n.need_id][r.resource_id] = prob.add_variable(
+                            var_name,
+                            lowBound=0,
+                            upBound=upper,
+                            cat=pulp.LpInteger,
+                        )
+                    else:
+                        x_vars[n.need_id][r.resource_id] = pulp.LpVariable(
+                            var_name,
+                            lowBound=0,
+                            upBound=upper,
+                            cat=pulp.LpInteger,
+                        )
 
         # Objective function: maximize (urgency * 1000 - distance) * quantity
         objective_terms = []
@@ -96,21 +105,27 @@ class ResourceMatcher:
                 prob += (pulp.lpSum(res_vars) <= r.quantity_available, f"ResLimit_{r.resource_id}")
 
         # Solve with best available solver
-        solver = None
-        for candidate in [pulp.PULP_CBC_CMD(msg=0), pulp.COIN_CMD(msg=0)]:
-            if candidate.available():
-                solver = candidate
-                break
-        try:
-            if solver:
-                prob.solve(solver)
-            else:
-                prob.solve(pulp.PULP_CBC_CMD(msg=0))
-        except Exception:
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            solver = None
+            for candidate in [pulp.COIN_CMD(msg=0), pulp.PULP_CBC_CMD(msg=0)]:
+                try:
+                    if candidate.available():
+                        solver = candidate
+                        break
+                except Exception:
+                    pass
             try:
-                prob.solve()
+                if solver:
+                    prob.solve(solver)
+                else:
+                    prob.solve(pulp.PULP_CBC_CMD(msg=0))
             except Exception:
-                pass
+                try:
+                    prob.solve()
+                except Exception:
+                    pass
         
         # Build allocations from results
         for n in active_needs:

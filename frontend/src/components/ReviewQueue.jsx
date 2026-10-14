@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import client from '../api/client';
 import ReviewModal from './ReviewModal';
 
-const ReviewQueue = () => {
+const ReviewQueue = ({ refreshTick = 0 }) => {
   const [queue, setQueue] = useState([]);
   const [selectedNeed, setSelectedNeed] = useState(null);
 
@@ -17,9 +17,9 @@ const ReviewQueue = () => {
 
   useEffect(() => {
     fetchQueue();
-    const interval = setInterval(fetchQueue, 5000);
+    const interval = setInterval(fetchQueue, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshTick]);
 
   const handleActionComplete = () => {
     setSelectedNeed(null);

@@ -12,10 +12,15 @@ from backend.agents.plan_synthesizer import PlanSynthesizer
 from backend.agents.evaluator_agent import EvaluatorAgent
 from backend.utils.logger import get_audit_logger
 
+import os
+
 # Module-level persistent checkpointer — survives server restarts.
 # check_same_thread=False is required because FastAPI BackgroundTasks run on
 # different threads from the main request thread.
-_checkpoint_conn = sqlite3.connect("./langgraph_checkpoints.db", check_same_thread=False)
+_checkpoint_dir = os.environ.get("CHECKPOINT_DIR", ".")
+os.makedirs(_checkpoint_dir, exist_ok=True)
+_checkpoint_path = os.path.join(_checkpoint_dir, "langgraph_checkpoints.db")
+_checkpoint_conn = sqlite3.connect(_checkpoint_path, check_same_thread=False)
 _checkpointer = SqliteSaver(_checkpoint_conn)
 
 def build_coordinator_graph():

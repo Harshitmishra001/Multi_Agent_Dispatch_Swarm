@@ -48,6 +48,11 @@ async def check_rate_limit(request: Request):
     request_count = results[1]  # The result of zcard
     
     if request_count >= settings.RATE_LIMIT_PER_MINUTE:
+        try:
+            from backend.metrics import RATE_LIMIT_HITS
+            RATE_LIMIT_HITS.inc()
+        except Exception:
+            pass
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded. Try again later."

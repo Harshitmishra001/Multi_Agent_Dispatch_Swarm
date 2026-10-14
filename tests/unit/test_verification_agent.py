@@ -68,3 +68,32 @@ def test_verification_agent_dedup(agent):
     assert result.duplicate_of == "need-existing"
     assert "rpt-2" in result.source_report_ids
     assert "rpt-old" in result.source_report_ids
+
+def test_verification_agent_fallback_mode():
+    agent = VerificationAgent(similarity_threshold=0.8)
+    agent._is_fallback = True
+    agent.model = None
+
+    extracted = ExtractedNeed(
+        report_id="rpt-fallback",
+        location_text="123 Main Street",
+        need_type=NeedType.WATER,
+        quantity_estimate=10,
+        stated_urgency=UrgencyLevel.HIGH,
+        extraction_confidence=0.9
+    )
+
+    existing = VerifiedNeed(
+        need_id="need-fallback-old",
+        source_report_ids=["rpt-old-1"],
+        location_text="123 Main Street",
+        need_type=NeedType.WATER,
+        quantity_estimate=5,
+        urgency=UrgencyLevel.HIGH,
+        verification_confidence=0.9,
+        requires_human_review=False
+    )
+
+    result = agent.process(extracted, [existing])
+    assert result.duplicate_of == "need-fallback-old"
+    assert "rpt-fallback" in result.source_report_ids

@@ -52,6 +52,9 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://dc_user:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/disaster_coordinator
       REDIS_URL: redis://redis:6379/0
+      CHECKPOINT_DIR: /app/checkpoints
+    volumes:
+      - checkpointsdata:/app/checkpoints
     depends_on:
       db:
         condition: service_healthy
@@ -67,6 +70,9 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://dc_user:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/disaster_coordinator
       REDIS_URL: redis://redis:6379/0
+      CHECKPOINT_DIR: /app/checkpoints
+    volumes:
+      - checkpointsdata:/app/checkpoints
     depends_on:
       db:
         condition: service_healthy
@@ -90,3 +96,4 @@ volumes:
   pgdata:
   redisdata:
   prometheusdata:
+  checkpointsdata:

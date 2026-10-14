@@ -2,6 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import client from '../api/client';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 // Clean SVG marker for NEEDS (Red circle)
 const createNeedIcon = (urgency) => {
@@ -43,7 +51,7 @@ const BoundsFitter = ({ needs, resources }) => {
   return null;
 };
 
-const LiveMap = ({ onStatsUpdate }) => {
+const LiveMap = ({ onStatsUpdate, refreshTick = 0 }) => {
   const [resources, setResources] = useState([]);
   const [needs, setNeeds] = useState([]);
 
@@ -67,9 +75,9 @@ const LiveMap = ({ onStatsUpdate }) => {
     };
     
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
-  }, [onStatsUpdate]);
+  }, [onStatsUpdate, refreshTick]);
 
   // Houston coords as fallback
   const fallbackCenter = [29.7604, -95.3698];

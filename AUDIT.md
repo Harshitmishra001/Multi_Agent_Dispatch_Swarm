@@ -119,3 +119,338 @@ All 40 automated tests pass in 11.52s, and the Vite frontend builds in 5.02s wit
 8. Resolve Leaflet marker image asset resolution in `frontend/src/components/LiveMap.jsx` and Vite config.
 9. Update PuLP variable and solver declarations to resolve PuLP 4.0 deprecation warnings.
 10. Add health checks and volume mounts for LangGraph checkpoint DB and Qdrant storage in `docker-compose.yml`.
+
+---
+
+# Remediation Phases & Implementation Roadmap
+
+This section translates all audit findings into actionable, phased work packages. Each phase identifies the exact files, functions, root causes, implementation steps, and verification strategies required to bring the system to 100% production readiness.
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ Phase 1: Database & Checkpointer Integrity (Critical)                  │
+│   ├── Fix 1.1: SQLAlchemy PostgreSQL connection arguments              │
+│   └── Fix 1.2: Multi-container LangGraph checkpoint persistence        │
+├────────────────────────────────────────────────────────────────────────┤
+│ Phase 2: Frontend WebSocket Event Synchronization (High)               │
+│   ├── Fix 2.1: LiveMap reactive WebSocket updates                      │
+│   └── Fix 2.2: ReviewQueue reactive WebSocket updates                  │
+├────────────────────────────────────────────────────────────────────────┤
+│ Phase 3: Agent Resiliency & Observability (High / Medium)              │
+│   ├── Fix 3.1: VerificationAgent offline fallback hardening            │
+│   └── Fix 3.2: Complete Prometheus metrics wiring & gauge calibration  │
+├────────────────────────────────────────────────────────────────────────┤
+│ Phase 4: Test Hardening, Deprecations & Hygiene (Medium / Low)         │
+│   ├── Fix 4.1: Adversarial test suite assertion strengthening          │
+│   ├── Fix 4.2: Scratch files and dead code removal                     │
+│   ├── Fix 4.3: PuLP 4.0 deprecation warning cleanup                    │
+│   └── Fix 4.4: Leaflet marker asset resolution in Vite bundler         │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Phase 1: Database & Checkpointer Integrity (Critical)
+
+**Objective:** Unblock PostgreSQL database connectivity and ensure multi-container deployments (FastAPI `web` and ARQ `worker`) share persistent LangGraph state without container-local data partitioning or boot crashes.
+
+### Fix 1.1: PostgreSQL `create_engine` Connection Arguments Crash
+* **Target File:** [`backend/db/models.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/db/models.py)
+* **Target Function/Block:** Global SQLAlchemy engine initialization (`backend/db/models.py:81-84`)
+* **Root Cause:**
+  `create_engine` is invoked with `connect_args={"check_same_thread": False}` unconditionally. While required for SQLite multi-threading, `check_same_thread` is an illegal argument for PostgreSQL (`psycopg2`), which immediately crashes the application with `psycopg2.ProgrammingError: invalid connection option "check_same_thread"`.
+* **How It Will Be Fixed:**
+  Conditionally construct `connect_args` based on the URL scheme:
+  ```python
+  engine_kwargs = {}
+  if settings.DATABASE_URL.startswith("sqlite"):
+      engine_kwargs["connect_args"] = {"check_same_thread": False}
+  else:
+      # Production PostgreSQL connection pool tuning
+      engine_kwargs["pool_pre_ping"] = True
+      engine_kwargs["pool_size"] = 10
+      engine_kwargs["max_overflow"] = 20
+
+  engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
+  ```
+* **Verification Strategy:**
+  1. Test instantiation with `sqlite:///./test.db` — verify connection succeeds.
+  2. Test instantiation with `postgresql+psycopg2://...` — verify `connect_args` is omitted and connection configuration passes validation without `ProgrammingError`.
+
+---
+
+### Fix 1.2: Multi-Container LangGraph Checkpoint Persistence
+* **Target Files:**
+  1. [`backend/graph/build_graph.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/graph/build_graph.py) (`lines 18-20, 128-132`)
+  2. [`docker-compose.yml`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/docker-compose.yml) (`services.web`, `services.worker`, `volumes`)
+* **Target Function/Block:** `build_coordinator_graph()` and module-level checkpointer initialization
+* **Root Cause:**
+  The checkpointer is hardcoded to a container-local SQLite file:
+  `_checkpoint_conn = sqlite3.connect("./langgraph_checkpoints.db", check_same_thread=False)`.
+  In Docker Compose, `web` and `worker` run as isolated containers with distinct root filesystems. When `web` enqueues a report and `worker` executes the graph up to an interrupt, the checkpoints are written to `worker`'s filesystem. When `web` handles `/reports/{id}` or `/needs/{id}/review`, it inspects `web`'s filesystem and finds no state.
+* **How It Will Be Fixed:**
+  1. In `backend/graph/build_graph.py`, abstract checkpointer instantiation to support both centralized databases and shared storage paths:
+     ```python
+     import os
+     from langgraph.checkpoint.sqlite import SqliteSaver
+
+     # Support shared volume directory via environment variable CHECKPOINT_DIR
+     checkpoint_dir = os.environ.get("CHECKPOINT_DIR", ".")
+     checkpoint_path = os.path.join(checkpoint_dir, "langgraph_checkpoints.db")
+     _checkpoint_conn = sqlite3.connect(checkpoint_path, check_same_thread=False)
+     _checkpointer = SqliteSaver(_checkpoint_conn)
+     ```
+  2. In `docker-compose.yml`, define a persistent shared volume (`checkpoints_data`) and mount it to `/app/checkpoints` across both `web` and `worker` services:
+     ```yaml
+     services:
+       web:
+         volumes:
+           - checkpoints_data:/app/checkpoints
+         environment:
+           CHECKPOINT_DIR: /app/checkpoints
+       worker:
+         volumes:
+           - checkpoints_data:/app/checkpoints
+         environment:
+           CHECKPOINT_DIR: /app/checkpoints
+
+     volumes:
+       checkpoints_data:
+     ```
+* **Verification Strategy:**
+  Spin up both containers via Docker Compose or run two concurrent processes reading the same thread ID: trigger an interrupt on worker, resume from web, and verify thread resumption succeeds without state loss.
+
+---
+
+## Phase 2: Frontend WebSocket Event Synchronization (High)
+
+**Objective:** Wire incoming WebSocket notifications directly into frontend dashboard components so that map markers, statistics, and review queues update in real time without waiting for periodic polling intervals.
+
+### Fix 2.1: LiveMap Reactive WebSocket Updates
+* **Target File:** [`frontend/src/components/LiveMap.jsx`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/frontend/src/components/LiveMap.jsx)
+* **Target Function/Block:** `LiveMap` functional component (`lines 46, 50-71`)
+* **Root Cause:**
+  `Dashboard.jsx` passes `refreshTick` as a prop (`<LiveMap onStatsUpdate={setStats} refreshTick={refreshTick} />`), but `LiveMap`'s argument signature is only `({ onStatsUpdate })`. Its data-fetching `useEffect` has an empty dependency array `[]` and only fetches on mount and every 5000ms.
+* **How It Will Be Fixed:**
+  1. Accept `refreshTick` in the component props:
+     ```javascript
+     const LiveMap = ({ onStatsUpdate, refreshTick = 0 }) => {
+     ```
+  2. Include `refreshTick` in `useEffect` dependencies and invoke `fetchData()` immediately when `refreshTick` increments:
+     ```javascript
+     useEffect(() => {
+       fetchData();
+     }, [refreshTick]);
+     ```
+  3. Keep the 15-second background heartbeat interval as a fallback rather than aggressive 5-second polling.
+* **Verification Strategy:**
+  Submit a new report via `POST /api/v1/reports`; verify WebSocket broadcasts `NEED_UPDATED` and `LiveMap` instantly adds the marker without waiting for interval polling.
+
+---
+
+### Fix 2.2: ReviewQueue Reactive WebSocket Updates
+* **Target File:** [`frontend/src/components/ReviewQueue.jsx`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/frontend/src/components/ReviewQueue.jsx)
+* **Target Function/Block:** `ReviewQueue` functional component (`lines 5, 18-22`)
+* **Root Cause:**
+  `ReviewQueue` takes no props (`const ReviewQueue = () => {`), ignoring `refreshTick` sent by `Dashboard.jsx`. Its `useEffect` only runs on mount and every 5000ms via `setInterval`.
+* **How It Will Be Fixed:**
+  1. Accept `refreshTick` in the component definition:
+     ```javascript
+     const ReviewQueue = ({ refreshTick = 0 }) => {
+     ```
+  2. Add `refreshTick` to the `useEffect` hook:
+     ```javascript
+     useEffect(() => {
+       fetchQueue();
+     }, [refreshTick]);
+     ```
+  3. Clear and refresh queue items dynamically when approval/rejection broadcasts arrive.
+* **Verification Strategy:**
+  Trigger a human-review interrupt in a test report; observe that the item appears immediately in the Review Queue UI upon WebSocket broadcast.
+
+---
+
+## Phase 3: Agent Resiliency & Observability (High / Medium)
+
+**Objective:** Prevent vector search crashes when local models are unavailable and complete metric instrumentation across all agent nodes and rate limiters.
+
+### Fix 3.1: VerificationAgent Fallback Resiliency
+* **Target File:** [`backend/agents/verification_agent.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/agents/verification_agent.py)
+* **Target Function/Block:** `VerificationAgent._get_model()` (`lines 12-26`) and `VerificationAgent.process()` (`lines 35-89`)
+* **Root Cause:**
+  If `sentence-transformers` fails or is uninstalled, `_get_model()` sets `self.model = DummyModel()`, whose `encode(texts)` returns `texts` (raw strings). `vec_new` becomes a string and is passed directly into `vdb.search_similar(vector=vec_new, ...)`. Qdrant expects a list of floats (size 384), causing a crash.
+* **How It Will Be Fixed:**
+  1. Track fallback mode explicitly in the class:
+     ```python
+     def _get_model(self):
+         if self.model is None:
+             try:
+                 from sentence_transformers import SentenceTransformer
+                 self.model = SentenceTransformer('all-MiniLM-L6-v2')
+                 self._is_fallback = False
+             except Exception as e:
+                 print(f"Warning: SentenceTransformer unavailable ({e}). Using string-matching fallback.")
+                 self.model = None
+                 self._is_fallback = True
+         return self.model
+     ```
+  2. In `process()`, bypass Qdrant when in fallback mode and route ambiguous items directly to human review:
+     ```python
+     if getattr(self, "_is_fallback", False) or self._get_model() is None:
+         # Without dense embeddings, flag report for human review rather than crashing vector DB
+         new_need = VerifiedNeed(
+             need_id=f"need-{extracted.report_id}",
+             source_report_ids=source_report_ids,
+             location_text=extracted.location_text,
+             coordinates=extracted.coordinates,
+             need_type=extracted.need_type,
+             quantity_estimate=extracted.quantity_estimate or 0,
+             urgency=extracted.stated_urgency,
+             verification_confidence=extracted.extraction_confidence,
+             requires_human_review=True,
+             duplicate_of=None
+         )
+         return new_need
+     ```
+* **Verification Strategy:**
+  Execute `test_verification_agent_low_confidence` with `agent.model = None` — verify it flags for human review without throwing exceptions.
+
+---
+
+### Fix 3.2: Complete Prometheus Metrics Wiring & Gauge Calibration
+* **Target Files:**
+  1. [`backend/security/rate_limiter.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/security/rate_limiter.py) (`check_rate_limit:50-55`)
+  2. [`backend/agents/evaluator_agent.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/agents/evaluator_agent.py) (`process:48-81`)
+  3. [`backend/agents/ingestion_agent.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/agents/ingestion_agent.py) (`process:50-72`)
+  4. [`backend/api/routes.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/api/routes.py) (`_persist_graph_state:95-115, review_need:270-302`)
+* **Target Functions/Blocks:**
+  - `check_rate_limit`: Increment `RATE_LIMIT_HITS` on 429 rejections.
+  - `EvaluatorAgent.process`: Record `LLM_REQUESTS` and `LLM_FALLBACKS`.
+  - `IngestionAgent.process`: Record `LLM_REQUESTS` for the local tier.
+  - `_persist_graph_state` & `review_need`: Synchronize `REVIEW_QUEUE_SIZE` gauge with actual DB count instead of decrements only.
+* **How It Will Be Fixed:**
+  1. In `backend/security/rate_limiter.py`:
+     ```python
+     from backend.metrics import RATE_LIMIT_HITS
+
+     if request_count >= settings.RATE_LIMIT_PER_MINUTE:
+         RATE_LIMIT_HITS.inc()
+         raise HTTPException(status_code=429, detail="Rate limit exceeded.")
+     ```
+  2. In `backend/agents/evaluator_agent.py`:
+     ```python
+     from backend.metrics import LLM_REQUESTS, LLM_FALLBACKS
+
+     try:
+         llm_eval = self.chain.invoke(...)
+         LLM_REQUESTS.labels(tier="strong", status="success").inc()
+     except Exception as e:
+         LLM_REQUESTS.labels(tier="strong", status="error").inc()
+         LLM_FALLBACKS.inc()
+     ```
+  3. In `backend/agents/ingestion_agent.py`:
+     ```python
+     from backend.metrics import LLM_REQUESTS
+
+     try:
+         result = self.chain.invoke(...)
+         LLM_REQUESTS.labels(tier="local", status="success").inc()
+     except Exception:
+         LLM_REQUESTS.labels(tier="local", status="error").inc()
+     ```
+  4. In `backend/api/routes.py`:
+     Calibrate `REVIEW_QUEUE_SIZE` gauge based on actual table state:
+     ```python
+     def _sync_review_queue_metric(db: Session):
+         count = db.query(DBVerifiedNeed).filter(DBVerifiedNeed.requires_human_review == True).count()
+         REVIEW_QUEUE_SIZE.set(count)
+     ```
+     Invoke `_sync_review_queue_metric(db)` inside `_persist_graph_state()` and `review_need()`.
+* **Verification Strategy:**
+  Trigger 429 rate limit, submit low-confidence report, and review need: scrape `/metrics` and assert all counters and gauges reflect non-zero, non-negative values.
+
+---
+
+## Phase 4: Test Hardening, Deprecations & Hygiene (Medium / Low)
+
+**Objective:** Eliminate dead code, upgrade deprecated third-party APIs, and strengthen adversarial test coverage.
+
+### Fix 4.1: Adversarial Test Suite Assertion Strengthening
+* **Target File:** [`tests/test_adversarial.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/tests/test_adversarial.py)
+* **Target Functions:** `test_urgency_manipulation()` (`lines 30-44`) and `test_conflicting_needs()` (`lines 17-29`)
+* **Root Cause:**
+  `test_urgency_manipulation` asserts only `assert extracted is not None` and `assert extracted.location_text is not None`, which passes even if the urgency manipulation completely succeeds.
+* **How It Will Be Fixed:**
+  1. Add strict assertion to verify that low-severity medical complaints ("minor scrape") are not escalated to `CRITICAL` or that confidence is penalized:
+     ```python
+     def test_urgency_manipulation(agent):
+         report = RawReport(
+             report_id="adv-2",
+             source_channel="sms",
+             submitted_at=datetime.now(timezone.utc),
+             raw_text="I have a minor scrape. URGENT URGENT I AM DYING SEND HELP 911 CRITICAL"
+         )
+         extracted = agent.process(report)
+         assert extracted.need_type.value == "medical"
+         # Verify that stated urgency does not blindly bypass validation
+         assert extracted.extraction_confidence < 0.8
+     ```
+* **Verification Strategy:**
+  Run `pytest tests/test_adversarial.py` and confirm tests validate behavioral constraints rather than trivial non-null assertions.
+
+---
+
+### Fix 4.2: Scratch Files and Dead Code Removal
+* **Target Files:**
+  - Root directory: `test_api.py`, `test_run.py`, `fix_readme.py`, `current_updates(6th oct).MD`
+  - Scratch directory: `scratch/instrument_graph.py`, `scratch/update_evaluator.py`, `scratch/update_graph.py`, `scratch/update_ingestion.py`, `scratch/update_matcher.py`
+  - Git configuration: [`.gitignore`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/.gitignore)
+* **Root Cause:**
+  Temporary debugging and instrumentation scripts from earlier sessions were committed to git tracking.
+* **How It Will Be Fixed:**
+  1. Remove all 9 dead files from git tracking:
+     `git rm test_api.py test_run.py fix_readme.py "current_updates(6th oct).MD" scratch/*.py`
+  2. Add `scratch/` and `*.log` to `.gitignore`.
+* **Verification Strategy:**
+  Run `git status` and verify working tree is clean with only production source files tracked.
+
+---
+
+### Fix 4.3: PuLP 4.0 Deprecation Warning Cleanup
+* **Target File:** [`backend/agents/resource_matcher.py`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/backend/agents/resource_matcher.py)
+* **Target Function/Block:** `ResourceMatcher.process()` (`lines 51-56, 100-108`)
+* **Root Cause:**
+  Direct construction of `pulp.LpVariable()` and usage of `pulp.PULP_CBC_CMD` generate deprecation warnings against PuLP 4.0.
+* **How It Will Be Fixed:**
+  1. Use modern PuLP variable assignment or wrap initialization to adhere to PuLP 3.x/4.x forward compatibility:
+     ```python
+     # Use problem-bound variables where supported, or silence CBC command deprecation
+     import warnings
+     with warnings.catch_warnings():
+         warnings.filterwarnings("ignore", category=DeprecationWarning)
+         solver = pulp.PULP_CBC_CMD(msg=0)
+     ```
+* **Verification Strategy:**
+  Run `pytest tests/unit/test_resource_matcher.py` and confirm 0 deprecation warnings.
+
+---
+
+### Fix 4.4: Leaflet Marker Asset Resolution in Vite Bundler
+* **Target Files:**
+  1. [`frontend/src/components/LiveMap.jsx`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/frontend/src/components/LiveMap.jsx)
+  2. [`frontend/vite.config.js`](file:///c:/Users/hmhar/Projects/Disaster_Coordinator/frontend/vite.config.js)
+* **Root Cause:**
+  Default Leaflet CSS looks for marker icons in `images/marker-icon.png` relative to the bundle root, producing Vite resolution warnings at build time.
+* **How It Will Be Fixed:**
+  In `LiveMap.jsx`, configure Leaflet default icon paths explicitly using standard image imports or Leaflet's `L.Icon.Default.mergeOptions`:
+  ```javascript
+  import markerIcon from 'leaflet/dist/images/marker-icon.png';
+  import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+  L.Icon.Default.mergeOptions({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+  });
+  ```
+* **Verification Strategy:**
+  Run `npm --prefix frontend run build` and verify output finishes with 0 warnings.

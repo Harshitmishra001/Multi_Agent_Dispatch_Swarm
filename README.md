@@ -165,22 +165,23 @@ LM_STUDIO_BASE_URL=http://localhost:1234/v1
 LM_STUDIO_MODEL=smollm3-3b
 ```
 
-### 3. Run the Backend Server
+### 3. Run Everything (Single Command)
+You don't need to juggle separate terminals for FastAPI and React. Run both with one command from the project root:
+
 ```bash
-uvicorn backend.main:app --reload
+python run.py
 ```
-The API starts at `http://127.0.0.1:8000`. On first boot, it automatically seeds default accounts:
+*(On Windows, you can also simply double-click `start.bat` or run `npm run dev` from the root folder).*
+
+This concurrently boots:
+- **FastAPI API & AI Swarm:** `http://127.0.0.1:8000` (Docs: `http://127.0.0.1:8000/docs`, Metrics: `http://127.0.0.1:8000/metrics`)
+- **React Tactical Workstation:** `http://localhost:5173`
+
+On first boot, default accounts are seeded automatically:
 - Reviewer: `alice` / `reviewer_pass`
 - Admin: `admin` / `admin_pass`
 
-### 4. Frontend Setup
-In a new terminal:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The tactical dashboard runs at `http://localhost:5173`. Log in with `alice` or `admin`.
+Press `Ctrl+C` at any time to cleanly shut down both servers.
 
 ---
 

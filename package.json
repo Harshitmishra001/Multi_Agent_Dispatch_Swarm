@@ -1,0 +1,10 @@
+{
+  "name": "disaster-coordinator",
+  "version": "1.0.0",
+  "description": "Multi-Agent Emergency Dispatch Swarm",
+  "scripts": {
+    "dev": "python run.py",
+    "start": "python run.py",
+    "test": "pytest -v"
+  }
+}

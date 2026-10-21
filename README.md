@@ -214,7 +214,7 @@ The project includes an automated test suite covering unit tests, adversarial pr
 pytest -v
 ```
 
-All 40 tests pass in around 12 seconds:
+All 41 tests pass in around 18 seconds:
 * `tests/unit/test_resource_matcher.py`: Validates that the PuLP optimizer respects urgency and capacity constraints.
 * `tests/unit/test_model_router.py`: Tests model routing between local LM Studio and cloud providers.
 * `tests/unit/test_worker.py`: Verifies ARQ background worker execution and LangGraph streaming.

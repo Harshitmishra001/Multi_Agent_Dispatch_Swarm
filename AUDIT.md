@@ -466,3 +466,19 @@ This section translates all audit findings into actionable, phased work packages
 | Phase 3 | Agent Resiliency & Observability | Completed | VerificationAgent string-matching fallback verified without Qdrant vector crashes; Prometheus counters and gauges calibrated. |
 | Phase 4 | Test Hardening, Deprecations & Hygiene | Completed | Adversarial tests strengthened; dead scratch scripts deleted; PuLP 4.0 deprecation warnings resolved; Vite build clean with 0 warnings. 41/41 tests passing. |
 
+---
+
+## Post-Audit Remediation Plan (8 Fixes Completed)
+
+| Fix | Component | Status | Verification Summary |
+|---|---|---|---|
+| Fix 1: Redis Pub/Sub in broadcast() | `backend/ws/manager.py`, `backend/main.py` | Completed | Added `set_redis()` and cross-process publishing to `dc:events` channel so ARQ worker events fan out across multi-container instances. |
+| Fix 2: Confidence Field Name | `frontend/src/components/ReviewQueue.jsx`, `ReviewModal.jsx` | Completed | Changed property lookup to `verification_confidence ?? extraction_confidence ?? 0` so confidence percentages render accurately. |
+| Fix 3: GET /api/v1/needs & LiveMap | `backend/api/routes.py`, `frontend/src/components/LiveMap.jsx` | Completed | Added `/needs` endpoint returning all verified needs; rewired LiveMap so approved items remain visible on map. |
+| Fix 4: WebSocket Fallback Host | `frontend/src/hooks/useDisasterSocket.js` | Completed | Detects Vite dev server on port 5173 and defaults to `127.0.0.1:8000` instead of port 5173. |
+| Fix 5: Qdrant Volume in Docker Compose | `docker-compose.yml`, `backend/db/vector_store.py` | Completed | Added `qdrantdata` volume mounted at `/app/qdrant_data` and wired `QDRANT_PATH` environment variable. |
+| Fix 6: PlanSynthesizer Prometheus Metrics | `backend/agents/plan_synthesizer.py` | Completed | Integrated `LLM_REQUESTS.labels(tier="local", status=...).inc()` for success and error branches. |
+| Fix 7: Authenticated Username in Header | `frontend/src/pages/Dashboard.jsx` | Completed | Decodes JWT payload `sub` claim to display active operator username rather than hardcoded text. |
+| Fix 8: Expand Synthetic Dataset | `data/synthetic_reports.json` | Completed | Expanded to 15 reports covering edge cases: duplicate flood, ambiguous location, cascading disaster, prompt injection, non-English, resource mismatch, extreme quantity, missing location, multi-channel dup, non-emergency. |
+
+

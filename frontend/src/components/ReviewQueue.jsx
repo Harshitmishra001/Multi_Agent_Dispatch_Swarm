@@ -67,7 +67,7 @@ const ReviewQueue = ({ refreshTick = 0 }) => {
                   <div className="flex gap-2 text-[10px] uppercase tracking-wider text-text-muted">
                     <span>{item.need_type}</span>
                     <span>·</span>
-                    <span>{item.extraction_confidence ? (item.extraction_confidence * 100).toFixed(0) : 0}% Conf</span>
+                    <span>{((item.verification_confidence ?? item.extraction_confidence ?? 0) * 100).toFixed(0)}% Conf</span>
                   </div>
                   <button 
                     onClick={() => setSelectedNeed(item)}

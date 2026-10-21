@@ -9,6 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 
 from backend.schemas.models import Allocation, DispatchPlan, VerifiedNeed
 from backend.config.model_router import get_llm
+from backend.metrics import LLM_REQUESTS
 
 class PlanSynthesizer:
     def __init__(self):
@@ -63,7 +64,8 @@ CRITICAL CONSTRAINTS:
                     "allocations": alloc_str or "None",
                     "unmet_needs": unmet_str
                 })
-                
+                LLM_REQUESTS.labels(tier="local", status="success").inc()
+
                 # Check grounding
                 if self._verify_grounding(result_text, valid_need_ids, valid_resource_ids):
                     narrative = result_text
@@ -71,6 +73,7 @@ CRITICAL CONSTRAINTS:
                 else:
                     print(f"Grounding failure on attempt {attempt+1}")
             except Exception as e:
+                LLM_REQUESTS.labels(tier="local", status="error").inc()
                 print(f"LLM failure on attempt {attempt+1}: {e}")
         
         if narrative == "Fallback plan summary generated due to error." and (allocations or unmet_needs):

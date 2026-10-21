@@ -10,7 +10,8 @@ _global_client = None
 def get_qdrant_client():
     global _global_client
     if _global_client is None:
-        _global_client = QdrantClient(path="./qdrant_data")
+        qdrant_path = os.environ.get("QDRANT_PATH", "./qdrant_data")
+        _global_client = QdrantClient(path=qdrant_path)
     return _global_client
 
 class VectorStore:

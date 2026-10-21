@@ -18,7 +18,12 @@ const MAX_DELAY_MS = 30_000;
 function buildWsUrl() {
   // Works whether the app is served on HTTP or HTTPS
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const host = import.meta.env.VITE_API_WS_HOST || window.location.host;
+  // When VITE_API_WS_HOST is set, use it directly.
+  // When running under Vite dev server (port 5173), fall back to the backend
+  // port (8000) rather than the Vite port which has no WebSocket endpoint.
+  const host =
+    import.meta.env.VITE_API_WS_HOST ||
+    (window.location.port === '5173' ? '127.0.0.1:8000' : window.location.host);
   return `${protocol}//${host}/ws`;
 }
 

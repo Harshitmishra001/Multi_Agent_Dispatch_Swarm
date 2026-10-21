@@ -34,6 +34,10 @@ async def lifespan(app: FastAPI):
         app.state.arq_pool = await create_pool(redis_settings)
         logger.info(f"Connected ARQ task pool to {settings.REDIS_URL}")
 
+        # Inject a dedicated Redis publish client for cross-process WS fan-out
+        _redis_pub = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        manager.set_redis(_redis_pub)
+
         # Start Redis Pub/Sub bridge for multi-worker WebSocket fan-out
         await manager.start_redis_listener(settings.REDIS_URL)
 

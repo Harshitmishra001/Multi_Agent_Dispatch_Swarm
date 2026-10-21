@@ -58,12 +58,12 @@ const LiveMap = ({ onStatsUpdate, refreshTick = 0 }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [resReq, queueReq] = await Promise.all([
+        const [resReq, needsReq] = await Promise.all([
           client.get('/resources'),
-          client.get('/needs/pending-review')
+          client.get('/needs')
         ]);
         const resData = resReq.data.resources || [];
-        const needData = queueReq.data.queue || [];
+        const needData = needsReq.data.needs || [];
         setResources(resData);
         setNeeds(needData);
         if (onStatsUpdate) {

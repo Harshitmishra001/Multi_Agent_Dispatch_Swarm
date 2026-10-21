@@ -252,6 +252,38 @@ async def get_report_status(
     }
 
 
+@router.get("/needs")
+async def list_needs(
+    limit: int = 200,
+    offset: int = 0,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_reviewer),
+):
+    """Return all active verified needs (excludes duplicates).
+
+    Used by LiveMap so approved high-confidence needs are always visible,
+    not just those that are still in the human-review queue.
+    """
+    rows = db.query(DBVerifiedNeed).filter(
+        DBVerifiedNeed.duplicate_of == None  # noqa: E711
+    ).offset(offset).limit(limit).all()
+    return {"needs": [
+        {
+            "need_id": r.need_id,
+            "location_text": r.location_text,
+            "need_type": r.need_type,
+            "urgency": r.urgency,
+            "verification_confidence": r.verification_confidence,
+            "requires_human_review": r.requires_human_review,
+            "source_report_ids": json.loads(r.source_report_ids) if r.source_report_ids else [],
+            "lat": r.lat,
+            "lon": r.lon,
+            "quantity_estimate": r.quantity_estimate
+        }
+        for r in rows
+    ]}
+
+
 @router.get("/needs/pending-review")
 async def get_review_queue(
     limit: int = 50,

@@ -29,6 +29,11 @@ class ConnectionManager:
     def __init__(self) -> None:
         self._connections: set[WebSocket] = set()
         self._lock = asyncio.Lock()
+        self._redis_pub = None  # Optional Redis client for Pub/Sub publishing
+
+    def set_redis(self, redis_client) -> None:
+        """Inject an aioredis client so broadcast() can publish to dc:events."""
+        self._redis_pub = redis_client
 
     async def connect(self, ws: WebSocket) -> None:
         await ws.accept()
@@ -44,7 +49,12 @@ class ConnectionManager:
         _log.info("WebSocket disconnected; total=%d", len(self._connections))
 
     async def broadcast(self, payload: dict) -> None:
-        """Send *payload* (JSON-serialisable dict) to every connected client."""
+        """Send *payload* (JSON-serialisable dict) to every connected client.
+
+        When a Redis client is configured via set_redis(), the payload is also
+        published to the ``dc:events`` channel so every web process receives it,
+        enabling cross-process fan-out in multi-container Docker deployments.
+        """
         message = json.dumps(payload)
         dead: list[WebSocket] = []
 
@@ -62,6 +72,13 @@ class ConnectionManager:
                 for ws in dead:
                     self._connections.discard(ws)
             WEBSOCKET_CONNECTIONS.dec(len(dead))
+
+        # Publish to Redis Pub/Sub so other web-process instances also fan out
+        if self._redis_pub is not None:
+            try:
+                await self._redis_pub.publish("dc:events", message)
+            except Exception as exc:
+                _log.warning("Failed to publish to Redis dc:events: %s", exc)
 
     async def broadcast_need_update(
         self,

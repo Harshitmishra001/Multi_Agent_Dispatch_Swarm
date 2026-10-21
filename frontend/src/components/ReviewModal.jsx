@@ -59,7 +59,7 @@ const ReviewModal = ({ item, onClose, onComplete }) => {
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-text-muted uppercase text-xs">Confidence</span>
-              <span className="text-text-primary">{item.extraction_confidence ? (item.extraction_confidence * 100).toFixed(1) : 0}%</span>
+              <span className="text-text-primary">{((item.verification_confidence ?? item.extraction_confidence ?? 0) * 100).toFixed(1)}%</span>
             </div>
           </div>
         </div>

@@ -1,10 +1,22 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LiveMap from '../components/LiveMap';
 import ReviewQueue from '../components/ReviewQueue';
 import ReportModal from '../components/ReportModal';
 import client from '../api/client';
 import { useDisasterSocket } from '../hooks/useDisasterSocket';
+
+/** Decode the JWT payload from localStorage and return the username (sub field). */
+function getOperatorName() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return 'Operator';
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || payload.username || 'Operator';
+  } catch {
+    return 'Operator';
+  }
+}
 
 export default function Dashboard() {
   const [health, setHealth] = useState({ connected: false, latency: 0 });
@@ -13,6 +25,7 @@ export default function Dashboard() {
   // Increment to trigger child component refreshes on real-time events
   const [refreshTick, setRefreshTick] = useState(0);
   const navigate = useNavigate();
+  const operatorName = useMemo(() => getOperatorName(), []);
 
 
   useEffect(() => {
@@ -75,7 +88,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center justify-end gap-6 w-1/3">
-          <span className="text-xs font-medium text-text-secondary tracking-wide uppercase">Alice Dispatcher</span>
+          <span className="text-xs font-medium text-text-secondary tracking-wide uppercase">{operatorName}</span>
           <button 
             onClick={() => {
               localStorage.removeItem('token');

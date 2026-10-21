@@ -472,7 +472,7 @@ This section translates all audit findings into actionable, phased work packages
 
 | Fix | Component | Status | Verification Summary |
 |---|---|---|---|
-| Fix 1: Redis Pub/Sub in broadcast() | `backend/ws/manager.py`, `backend/main.py` | Completed | Added `set_redis()` and cross-process publishing to `dc:events` channel so ARQ worker events fan out across multi-container instances. |
+| Fix 1: Redis Pub/Sub in broadcast() | `backend/ws/manager.py`, `backend/main.py`, `backend/tasks/worker.py` | Completed | Added `set_redis()`, cross-process publishing to `dc:events`, and worker `on_startup`/`on_shutdown` hooks so events fan out in multi-container setups. |
 | Fix 2: Confidence Field Name | `frontend/src/components/ReviewQueue.jsx`, `ReviewModal.jsx` | Completed | Changed property lookup to `verification_confidence ?? extraction_confidence ?? 0` so confidence percentages render accurately. |
 | Fix 3: GET /api/v1/needs & LiveMap | `backend/api/routes.py`, `frontend/src/components/LiveMap.jsx` | Completed | Added `/needs` endpoint returning all verified needs; rewired LiveMap so approved items remain visible on map. |
 | Fix 4: WebSocket Fallback Host | `frontend/src/hooks/useDisasterSocket.js` | Completed | Detects Vite dev server on port 5173 and defaults to `127.0.0.1:8000` instead of port 5173. |

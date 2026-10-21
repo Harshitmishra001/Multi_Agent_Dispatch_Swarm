@@ -47,7 +47,28 @@ async def test_resume_graph_task_success():
         assert args[0] == thread_id
 
 def test_worker_settings():
-    """WorkerSettings correctly exposes task functions and Redis configuration."""
+    """WorkerSettings correctly exposes task functions, Redis configuration, and lifecycle hooks."""
     assert run_graph_task in WorkerSettings.functions
     assert resume_graph_task in WorkerSettings.functions
     assert WorkerSettings.redis_settings is not None
+    assert WorkerSettings.on_startup is not None
+    assert WorkerSettings.on_shutdown is not None
+
+
+@pytest.mark.asyncio
+async def test_worker_startup_and_shutdown():
+    """Worker startup registers Redis with ws_manager; shutdown closes it."""
+    from backend.tasks.worker import startup, shutdown
+    from backend.ws.manager import manager as ws_manager
+    import fakeredis.aioredis
+
+    fake_client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    ctx = {}
+
+    with patch("redis.asyncio.from_url", return_value=fake_client):
+        await startup(ctx)
+        assert ctx.get("redis_pub") is fake_client
+        assert ws_manager._redis_pub is fake_client
+
+        await shutdown(ctx)
+

@@ -6,6 +6,7 @@ from langchain_core.output_parsers import PydanticOutputParser
 
 from backend.schemas.models import DispatchPlan, VerifiedNeed, EvaluationResult, UrgencyLevel
 from backend.config.model_router import get_llm
+from backend.config.settings import settings
 
 class LLMEvaluation(BaseModel):
     fairness_score: float = Field(ge=0.0, le=1.0, description="A score from 0.0 to 1.0 assessing if resources are fairly distributed geographically.")
@@ -85,7 +86,7 @@ You have the final say on whether a plan is released to the field or sent back f
                 plan_id=plan.plan_id,
                 coverage_pct=coverage_pct,
                 critical_unmet_count=critical_unmet_count,
-                fairness_score=0.5,
+                fairness_score=settings.DEFAULT_FAIRNESS_SCORE,
                 passed=passed,
                 rationale="Fallback evaluation due to system error.",
                 revision_notes="Please manually review." if not passed else None

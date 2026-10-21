@@ -15,6 +15,7 @@ from backend.ws.manager import manager
 async def lifespan(app: FastAPI):
     """Startup: init DB, connect to Redis for tasks. Shutdown: close Redis."""
     init_db()
+    settings.validate_production_secrets()
 
     # Initialize ARQ Redis pool
     import logging

@@ -79,8 +79,11 @@ const LiveMap = ({ onStatsUpdate, refreshTick = 0 }) => {
     return () => clearInterval(interval);
   }, [onStatsUpdate, refreshTick]);
 
-  // Houston coords as fallback
-  const fallbackCenter = [29.7604, -95.3698];
+  // Fallback center coordinates (configurable via env, defaults to Houston, TX)
+  const fallbackCenter = [
+    parseFloat(import.meta.env.VITE_MAP_DEFAULT_LAT || 29.7604),
+    parseFloat(import.meta.env.VITE_MAP_DEFAULT_LON || -95.3698)
+  ];
 
   return (
     <div className="h-full w-full relative">

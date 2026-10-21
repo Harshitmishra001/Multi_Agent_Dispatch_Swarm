@@ -1,11 +1,12 @@
 import math
 import pulp
 from typing import List
+from backend.config.settings import settings
 from backend.schemas.models import VerifiedNeed, ResourceRecord, Allocation, UrgencyLevel
 
-def haversine_distance(coord1, coord2):
+def haversine_distance(coord1, coord2, penalty: float | None = None) -> float:
     if not coord1 or not coord2:
-        return 9999.0 # Unknown distance, penalize
+        return penalty if penalty is not None else settings.DEFAULT_DISTANCE_PENALTY
         
     lat1, lon1 = coord1
     lat2, lon2 = coord2

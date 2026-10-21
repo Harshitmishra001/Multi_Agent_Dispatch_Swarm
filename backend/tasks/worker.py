@@ -112,6 +112,28 @@ async def resume_graph_task(ctx, thread_id: str):
         db.close()
 
 
+async def startup(ctx):
+    """Worker startup hook: connect to Redis Pub/Sub for cross-process WebSocket fan-out."""
+    import redis.asyncio as aioredis
+    try:
+        redis_pub = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        ws_manager.set_redis(redis_pub)
+        if ctx is not None:
+            ctx["redis_pub"] = redis_pub
+        _log.info(f"Worker connected to Redis Pub/Sub at {settings.REDIS_URL}")
+    except Exception as exc:
+        _log.warning(f"Worker could not connect to Redis for WS broadcasts: {exc}")
+
+
+async def shutdown(ctx):
+    """Worker shutdown hook: clean up Redis connection."""
+    client = ctx.get("redis_pub") if ctx else None
+    if client:
+        await client.aclose()
+
+
 class WorkerSettings:
     functions = [run_graph_task, resume_graph_task]
     redis_settings = RedisSettings.from_dsn(settings.REDIS_URL)
+    on_startup = startup
+    on_shutdown = shutdown

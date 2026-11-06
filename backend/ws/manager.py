@@ -48,12 +48,16 @@ class ConnectionManager:
         WEBSOCKET_CONNECTIONS.dec()
         _log.info("WebSocket disconnected; total=%d", len(self._connections))
 
-    async def broadcast(self, payload: dict) -> None:
+    async def broadcast(self, payload: dict, publish_to_redis: bool = True) -> None:
         """Send *payload* (JSON-serialisable dict) to every connected client.
 
-        When a Redis client is configured via set_redis(), the payload is also
-        published to the ``dc:events`` channel so every web process receives it,
-        enabling cross-process fan-out in multi-container Docker deployments.
+        When a Redis client is configured via set_redis() and publish_to_redis
+        is True, the payload is also published to the ``dc:events`` channel so
+        every web process receives it, enabling cross-process fan-out in
+        multi-container Docker deployments.
+
+        Set publish_to_redis=False when forwarding messages received from the
+        Redis subscription loop to prevent recursive echo storms.
         """
         message = json.dumps(payload)
         dead: list[WebSocket] = []
@@ -74,7 +78,7 @@ class ConnectionManager:
             WEBSOCKET_CONNECTIONS.dec(len(dead))
 
         # Publish to Redis Pub/Sub so other web-process instances also fan out
-        if self._redis_pub is not None:
+        if publish_to_redis and self._redis_pub is not None:
             try:
                 await self._redis_pub.publish("dc:events", message)
             except Exception as exc:
@@ -118,7 +122,7 @@ class ConnectionManager:
                     continue
                 try:
                     payload = json.loads(message["data"])
-                    await self.broadcast(payload)
+                    await self.broadcast(payload, publish_to_redis=False)
                 except (json.JSONDecodeError, Exception) as exc:
                     _log.warning("Bad Redis message: %s", exc)
         except Exception as exc:

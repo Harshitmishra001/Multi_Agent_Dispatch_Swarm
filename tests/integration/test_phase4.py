@@ -23,19 +23,27 @@ def client():
     os.environ.setdefault("JWT_SECRET_KEY", "test-secret-phase4")
     os.environ.setdefault("ENCRYPTION_KEY", "R2yIWPvAweDshbj20vqRMx6OQHEhptrQ5zkmx7ZLNVM=")
 
-    from backend.db.models import init_db
+    from backend.db.models import init_db, engine
     from backend.main import app
 
     # Clean up stale test DB
+    engine.dispose()
     if os.path.exists("test_phase4.db"):
-        os.remove("test_phase4.db")
+        try:
+            os.remove("test_phase4.db")
+        except OSError:
+            pass
     init_db()
 
     with TestClient(app, raise_server_exceptions=False) as c:
         yield c
 
+    engine.dispose()
     if os.path.exists("test_phase4.db"):
-        os.remove("test_phase4.db")
+        try:
+            os.remove("test_phase4.db")
+        except OSError:
+            pass
 
 
 class TestPrometheusMetrics:
@@ -82,3 +90,49 @@ class TestWebSocket:
             data = ws.receive_json()
             assert data["event"] == "NEED_UPDATED"
             assert data["need_id"] == "test-123"
+
+    def test_websocket_broadcast_suppresses_redis_publish_when_flag_false(self, client):
+        """When publish_to_redis=False, local sockets receive data but Redis publish is skipped."""
+        from backend.ws.manager import manager
+        from unittest.mock import AsyncMock
+
+        mock_redis = AsyncMock()
+        manager.set_redis(mock_redis)
+        try:
+            with client.websocket_connect("/ws") as ws:
+                asyncio.get_event_loop().run_until_complete(
+                    manager.broadcast(
+                        {"event": "NEED_UPDATED", "need_id": "test-suppress", "status": "approved"},
+                        publish_to_redis=False,
+                    )
+                )
+                data = ws.receive_json()
+                assert data["event"] == "NEED_UPDATED"
+                assert data["need_id"] == "test-suppress"
+                mock_redis.publish.assert_not_called()
+        finally:
+            manager.set_redis(None)
+
+    def test_websocket_broadcast_publishes_to_redis_by_default(self, client):
+        """Default broadcast must fan out to both local clients and Redis dc:events."""
+        from backend.ws.manager import manager
+        from unittest.mock import AsyncMock
+
+        mock_redis = AsyncMock()
+        manager.set_redis(mock_redis)
+        try:
+            with client.websocket_connect("/ws") as ws:
+                asyncio.get_event_loop().run_until_complete(
+                    manager.broadcast(
+                        {"event": "NEED_UPDATED", "need_id": "test-publish", "status": "pending"}
+                    )
+                )
+                data = ws.receive_json()
+                assert data["event"] == "NEED_UPDATED"
+                assert data["need_id"] == "test-publish"
+                mock_redis.publish.assert_called_once()
+                call_args = mock_redis.publish.call_args
+                assert call_args[0][0] == "dc:events"
+                assert "test-publish" in call_args[0][1]
+        finally:
+            manager.set_redis(None)

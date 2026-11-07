@@ -17,10 +17,17 @@ import os
 # Module-level persistent checkpointer — survives server restarts.
 # check_same_thread=False is required because FastAPI BackgroundTasks run on
 # different threads from the main request thread.
+# timeout=30.0 gives concurrent writers up to 30s to acquire the lock before
+# raising OperationalError, and WAL mode allows readers to proceed even while
+# a write transaction is active.
 _checkpoint_dir = os.environ.get("CHECKPOINT_DIR", ".")
 os.makedirs(_checkpoint_dir, exist_ok=True)
 _checkpoint_path = os.path.join(_checkpoint_dir, "langgraph_checkpoints.db")
-_checkpoint_conn = sqlite3.connect(_checkpoint_path, check_same_thread=False)
+_checkpoint_conn = sqlite3.connect(
+    _checkpoint_path, timeout=30.0, check_same_thread=False
+)
+_checkpoint_conn.execute("PRAGMA journal_mode=WAL;")
+_checkpoint_conn.execute("PRAGMA busy_timeout=30000;")
 _checkpointer = SqliteSaver(_checkpoint_conn)
 
 def build_coordinator_graph():

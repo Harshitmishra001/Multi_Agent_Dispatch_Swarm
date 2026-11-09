@@ -42,6 +42,15 @@ services:
       timeout: 5s
       retries: 10
 
+  # ── Qdrant (Vector Deduplication Engine) ────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:v1.9.0
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrantdata:/qdrant/storage
+
   # ── FastAPI web process ───────────────────────────────────────────────────────
   web:
     build: .
@@ -53,15 +62,16 @@ services:
       DATABASE_URL: postgresql+psycopg2://dc_user:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/disaster_coordinator
       REDIS_URL: redis://redis:6379/0
       CHECKPOINT_DIR: /app/checkpoints
-      QDRANT_PATH: /app/qdrant_data
+      QDRANT_URL: http://qdrant:6333
     volumes:
       - checkpointsdata:/app/checkpoints
-      - qdrantdata:/app/qdrant_data
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      qdrant:
+        condition: service_started
 
   # ── ARQ worker process ────────────────────────────────────────────────────────
   worker:
@@ -73,15 +83,16 @@ services:
       DATABASE_URL: postgresql+psycopg2://dc_user:${POSTGRES_PASSWORD:-changeme_in_production}@db:5432/disaster_coordinator
       REDIS_URL: redis://redis:6379/0
       CHECKPOINT_DIR: /app/checkpoints
-      QDRANT_PATH: /app/qdrant_data
+      QDRANT_URL: http://qdrant:6333
     volumes:
       - checkpointsdata:/app/checkpoints
-      - qdrantdata:/app/qdrant_data
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      qdrant:
+        condition: service_started
 
   # ── Prometheus ────────────────────────────────────────────────────────────────
   prometheus:

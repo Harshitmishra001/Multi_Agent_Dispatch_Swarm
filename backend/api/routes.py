@@ -113,14 +113,37 @@ def _persist_graph_state(report_id: str, thread_id: str, db: Session):
                 location_text=verified.location_text,
                 lat=verified.coordinates[0] if verified.coordinates else None,
                 lon=verified.coordinates[1] if verified.coordinates else None,
-                need_type=verified.need_type.value,
+                need_type=verified.need_type.value if hasattr(verified.need_type, "value") else str(verified.need_type),
                 quantity_estimate=verified.quantity_estimate,
-                urgency=verified.urgency.value,
+                urgency=verified.urgency.value if hasattr(verified.urgency, "value") else str(verified.urgency),
                 verification_confidence=verified.verification_confidence,
                 requires_human_review=verified.requires_human_review,
                 duplicate_of=verified.duplicate_of,
             ))
             if verified.requires_human_review:
+                _sync_review_queue_size(db)
+        else:
+            prev_requires_review = existing.requires_human_review
+            existing.source_report_ids = json.dumps(verified.source_report_ids)
+            existing.location_text = verified.location_text
+            if verified.coordinates:
+                existing.lat = verified.coordinates[0]
+                existing.lon = verified.coordinates[1]
+            existing.need_type = (
+                verified.need_type.value
+                if hasattr(verified.need_type, "value")
+                else str(verified.need_type)
+            )
+            existing.quantity_estimate = verified.quantity_estimate
+            existing.urgency = (
+                verified.urgency.value
+                if hasattr(verified.urgency, "value")
+                else str(verified.urgency)
+            )
+            existing.verification_confidence = verified.verification_confidence
+            existing.requires_human_review = verified.requires_human_review
+            existing.duplicate_of = verified.duplicate_of
+            if prev_requires_review != verified.requires_human_review:
                 _sync_review_queue_size(db)
 
     # Persist DispatchPlan + Allocations with atomic inventory reservation
@@ -174,6 +197,14 @@ def _persist_graph_state(report_id: str, thread_id: str, db: Session):
                     distance_km=alloc.distance_km,
                     allocation_method=alloc.allocation_method,
                 ))
+        else:
+            existing_plan.narrative = plan.narrative
+            if evaluation:
+                existing_plan.coverage_pct = evaluation.coverage_pct
+                existing_plan.critical_unmet_count = evaluation.critical_unmet_count
+                existing_plan.fairness_score = evaluation.fairness_score
+                existing_plan.passed = evaluation.passed
+                existing_plan.rationale = evaluation.rationale
 
     db.commit()
 

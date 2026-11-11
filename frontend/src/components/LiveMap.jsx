@@ -79,10 +79,10 @@ const LiveMap = ({ onStatsUpdate, refreshTick = 0 }) => {
     return () => clearInterval(interval);
   }, [onStatsUpdate, refreshTick]);
 
-  // Fallback center coordinates (configurable via env, defaults to Houston, TX)
+  // Fallback center coordinates (configurable via env, defaults to New Delhi, India)
   const fallbackCenter = [
-    parseFloat(import.meta.env.VITE_MAP_DEFAULT_LAT || 29.7604),
-    parseFloat(import.meta.env.VITE_MAP_DEFAULT_LON || -95.3698)
+    parseFloat(import.meta.env.VITE_MAP_DEFAULT_LAT || 28.6139),
+    parseFloat(import.meta.env.VITE_MAP_DEFAULT_LON || 77.2090)
   ];
 
   return (
